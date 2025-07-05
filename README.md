@@ -1,15 +1,16 @@
 # Bracket Esports
 
-A comprehensive esports tournament management platform.
+A comprehensive esports tournament management platform where players can sign up, connect their gaming accounts, join tournaments with entry fees, and compete for real prize pools.
 
 ## 🎮 Features
 
-- Tournament bracket management
-- Player/team registration
-- Live score tracking
-- Statistics and analytics
-- User authentication
-- Real-time updates
+- **Player Registration & Authentication**: Secure sign-up and login system
+- **Game Account Integration**: Connect Steam, Epic Games, and other gaming platforms
+- **Tournament Management**: Browse and join tournaments with real entry fees
+- **Prize Pool System**: Win real money from tournament prize pools
+- **Real-time Updates**: Live tournament brackets and match results
+- **Secure Payments**: Protected transactions for entry fees and prize payouts
+- **Leaderboard & Statistics**: Track your gaming performance and earnings
 
 ## 🚀 Getting Started
 
@@ -76,9 +77,10 @@ bracketesports/
 
 ## 🤝 Contributing
 
-This is a **private repository** for a proprietary project. 
+This is a **private repository** for a proprietary project.
 
 **For authorized collaborators only:**
+
 1. Contact the project owner for access permissions
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
@@ -92,6 +94,7 @@ This is a **private repository** for a proprietary project.
 This project is **proprietary software** owned by Hazem Salah. All rights reserved.
 
 **⚠️ IMPORTANT NOTICE:**
+
 - This code is **NOT open source**
 - Unauthorized copying, distribution, or use is **strictly prohibited**
 - Commercial use requires explicit written permission
@@ -106,4 +109,5 @@ Hazem Salah - [@HazemSalah29](https://github.com/HazemSalah29) - hazem.salah29@g
 Project Link: [https://github.com/HazemSalah29/bracketesports](https://github.com/HazemSalah29/bracketesports)
 
 ---
-*© 2025 Hazem Salah. All rights reserved.*
+
+_© 2025 Hazem Salah. All rights reserved._
