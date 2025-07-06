@@ -1,22 +1,47 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
 export default function RegisterPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // Redirect to game selection
+    router.push('/auth/game-selection')
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-white font-gaming">
+          <h2 className="mt-3 text-center text-3xl font-bold text-white font-gaming">
             Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-slate-300">
             Or{' '}
-            <a href="/auth/login" className="font-medium text-gaming-500 hover:text-gaming-400">
+            <a
+              href="/auth/login"
+              className="font-medium text-gaming-500 hover:text-gaming-400"
+            >
               sign in to existing account
             </a>
           </p>
         </div>
-        <form className="mt-8 space-y-6">
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Username
               </label>
               <input
@@ -29,7 +54,10 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Email address
               </label>
               <input
@@ -43,7 +71,10 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Password
               </label>
               <input
@@ -57,7 +88,10 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="confirm-password"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Confirm Password
               </label>
               <input
@@ -75,13 +109,14 @@ export default function RegisterPage() {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gaming-600 hover:bg-gaming-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gaming-500 transition-colors"
+              disabled={isLoading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gaming-600 hover:bg-gaming-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gaming-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
