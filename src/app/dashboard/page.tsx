@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   FunnelIcon, 
@@ -18,7 +18,11 @@ import {
   ChartBarIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { GameIcon } from '@/components/ui/GameIcons'
 import TournamentCard from '@/components/dashboard/TournamentCard'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { Tournament } from '@/types'
+import { apiClient } from '@/lib/api-client'
 
 // Simple account prompt component
 const AccountPrompt = ({ type, onClose, onContinue }: { type: string, onClose: () => void, onContinue: () => void }) => (
@@ -144,6 +148,7 @@ const mockTournaments = [
     name: 'CS2 Winter Championship',
     description: 'Elite Counter-Strike 2 tournament',
     game: 'Counter-Strike 2',
+    gameId: 'cs2',
     gameIcon: '🎯',
     pointsReward: 500,
     sponsoredBy: 'SteelSeries',
@@ -170,6 +175,7 @@ const mockTournaments = [
     name: 'Valorant Pro Series',
     description: 'Team-based Valorant tournament',
     game: 'Valorant',
+    gameId: 'valorant',
     gameIcon: '⚡',
     pointsReward: 750,
     sponsoredBy: 'Riot Games',
@@ -197,6 +203,7 @@ const mockTournaments = [
     name: 'Elite Rocket League Cup',
     description: 'Expert Rocket League tournament',
     game: 'Rocket League',
+    gameId: 'rocket-league',
     gameIcon: '🚗',
     pointsReward: 1000,
     sponsoredBy: 'Psyonix',
@@ -224,6 +231,7 @@ const mockTournaments = [
     name: 'League of Legends Clash',
     description: 'League of Legends team tournament',
     game: 'League of Legends',
+    gameId: 'lol',
     gameIcon: '⚔️',
     pointsReward: 600,
     maxParticipants: 48,
@@ -256,6 +264,8 @@ export default function DashboardPage() {
   const [showTeamOnly, setShowTeamOnly] = useState(false)
   const [showAccountPrompt, setShowAccountPrompt] = useState(false)
   const [showLinkAccountModal, setShowLinkAccountModal] = useState(false)
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Mock user data with points-based system
   const user = {
@@ -278,32 +288,76 @@ export default function DashboardPage() {
     ]
   }
 
-  const filteredTournaments = mockTournaments.filter(tournament => {
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        setLoading(true)
+        const response = await apiClient.getTournaments({ limit: 10 })
+        if (response?.data) {
+          const transformedTournaments = response.data.map((tournament: any) => ({
+            ...tournament,
+            startDate: new Date(tournament.startDate),
+            endDate: new Date(tournament.endDate),
+            registrationDeadline: new Date(tournament.registrationEnd),
+            createdAt: new Date(tournament.createdAt),
+            updatedAt: new Date(tournament.updatedAt)
+          }))
+          setTournaments(transformedTournaments)
+        }
+      } catch (err) {
+        console.error('Failed to fetch tournaments:', err)
+        // Use empty array as fallback
+        setTournaments([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTournaments()
+  }, [])
+
+  const filteredTournaments = tournaments.filter(tournament => {
     const matchesSearch = tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tournament.game.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesGame = selectedGame === 'all' || tournament.game === selectedGame
-    const matchesSkill = selectedSkill === 'all' || tournament.skillRequirement.description === selectedSkill
+    const matchesSkill = selectedSkill === 'all' || tournament.skillRequirement?.description === selectedSkill
     const matchesPrivate = showPrivateOnly ? false : true // No private tournaments in mock data
     const matchesTeam = showTeamOnly ? tournament.tournamentType === 'team' : true
     
     return matchesSearch && matchesGame && matchesSkill && matchesPrivate && matchesTeam
   })
 
-  const handleJoinTournament = (tournamentId: string) => {
+  const handleJoinTournament = async (tournamentId: string) => {
     if (!user.hasLinkedAccount) {
       setShowAccountPrompt(true)
       return
     }
     
-    const tournament = mockTournaments.find(t => t.id === tournamentId)
+    const tournament = tournaments.find(t => t.id === tournamentId)
     if (tournament?.tournamentType === 'team' && !user.teamId) {
       // Show team requirement prompt
       console.log('Team required for this tournament')
       return
     }
     
-    // Proceed with tournament join
-    console.log('Joining tournament:', tournamentId)
+    try {
+      await apiClient.joinTournament(tournamentId)
+      // Refresh tournaments
+      const response = await apiClient.getTournaments({ limit: 10 })
+      if (response?.data) {
+        const transformedTournaments = response.data.map((tournament: any) => ({
+          ...tournament,
+          startDate: new Date(tournament.startDate),
+          endDate: new Date(tournament.endDate),
+          registrationDeadline: new Date(tournament.registrationEnd),
+          createdAt: new Date(tournament.createdAt),
+          updatedAt: new Date(tournament.updatedAt)
+        }))
+        setTournaments(transformedTournaments)
+      }
+    } catch (err) {
+      console.error('Failed to join tournament:', err)
+    }
   }
 
   const handleCreateTournament = () => {
@@ -325,9 +379,7 @@ export default function DashboardPage() {
   }
 
   const handleViewAnalytics = () => {
-    // For now, show a coming soon message or navigate to a placeholder
-    alert('Analytics feature coming soon!')
-    // Later: router.push('/analytics')
+    router.push('/analytics')
   }
 
   const handleAccountLink = (platform: string, username: string) => {
@@ -339,7 +391,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-900">
       <div className="flex">
         {/* Sidebar */}
         <div className="w-80 bg-slate-900 border-r border-slate-800 min-h-screen">
@@ -351,7 +404,7 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-white font-semibold">{user.username}</h2>
                 <p className="text-slate-400 text-sm capitalize">
-                  {user.rank.tier} {user.rank.division}
+                  {user.rank?.tier || 'Bronze'} {user.rank?.division || 1}
                 </p>
               </div>
             </div>
@@ -370,19 +423,19 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-slate-300 text-sm">Current Rank</span>
                   <span className="text-white font-semibold capitalize">
-                    {user.rank.tier} {user.rank.division}
+                    {user.rank?.tier || 'Bronze'} {user.rank?.division || 1}
                   </span>
                 </div>
                 <div className="mt-3">
                   <div className="flex justify-between text-sm text-slate-300 mb-1">
                     <span>Rank Progress</span>
-                    <span>{user.rank.pointsToNextRank} to next rank</span>
+                    <span>{user.rank?.pointsToNextRank || 1000} to next rank</span>
                   </div>
                   <div className="w-full bg-slate-700 rounded-full h-2">
                     <div 
                       className="bg-gaming-500 h-2 rounded-full" 
                       style={{
-                        width: `${((user.rank.points / (user.rank.points + user.rank.pointsToNextRank)) * 100)}%`
+                        width: `${user.rank ? ((user.rank.points / (user.rank.points + user.rank.pointsToNextRank)) * 100) : 0}%`
                       }}
                     ></div>
                   </div>
@@ -573,5 +626,6 @@ export default function DashboardPage() {
         />
       )}
     </div>
+    </ProtectedRoute>
   )
 }

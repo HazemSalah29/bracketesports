@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { PlayIcon, TrophyIcon, UserGroupIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
+import { PlayIcon, TrophyIcon, UserGroupIcon, StarIcon } from '@heroicons/react/24/outline'
 
 const stats = [
   { id: 1, name: 'Active Players', value: '15K+', icon: UserGroupIcon },
   { id: 2, name: 'Tournaments Hosted', value: '2.5K+', icon: TrophyIcon },
-  { id: 3, name: 'Prize Money Distributed', value: '$2.8M+', icon: CurrencyDollarIcon },
+  { id: 3, name: 'Points Awarded', value: '2.8M+', icon: StarIcon },
   { id: 4, name: 'Games Supported', value: '25+', icon: PlayIcon },
 ]
 
@@ -30,7 +30,7 @@ export default function Hero() {
             </h1>
             <p className="mt-6 text-lg leading-8 text-slate-300">
               Join the ultimate esports tournament platform. Connect your gaming accounts, 
-              enter tournaments with real entry fees, and compete for massive prize pools. 
+              enter tournaments and compete for points and ranking progression. 
               Your skills, your rewards.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">

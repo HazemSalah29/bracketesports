@@ -1,6 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuthValidation } from '@/hooks/useAuthValidation'
+import AuthPrompt from '@/components/auth/AuthPrompt'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { 
   PlusIcon, 
   MagnifyingGlassIcon,
@@ -11,127 +14,49 @@ import {
   TrophyIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline'
-
-interface Team {
-  id: string
-  name: string
-  description: string
-  logo?: string
-  captainId: string
-  captainName: string
-  members: TeamMember[]
-  maxMembers: number
-  isPrivate: boolean
-  isRecruiting: boolean
-  rank: {
-    tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'master' | 'grandmaster'
-    division: 1 | 2 | 3 | 4 | 5
-    points: number
-  }
-  achievements: number
-  tournamentsWon: number
-  games: string[]
-  createdAt: Date
-}
-
-interface TeamMember {
-  id: string
-  username: string
-  role: 'captain' | 'player' | 'substitute'
-  joinedAt: Date
-  isActive: boolean
-}
-
-const mockTeams: Team[] = [
-  {
-    id: '1',
-    name: 'Cyber Wolves',
-    description: 'Professional esports team focusing on FPS games. Looking for skilled players.',
-    logo: '🐺',
-    captainId: '1',
-    captainName: 'WolfLeader',
-    members: [
-      { id: '1', username: 'WolfLeader', role: 'captain', joinedAt: new Date('2024-01-15'), isActive: true },
-      { id: '2', username: 'SniperWolf', role: 'player', joinedAt: new Date('2024-02-01'), isActive: true },
-      { id: '3', username: 'CyberPack', role: 'player', joinedAt: new Date('2024-02-15'), isActive: true },
-    ],
-    maxMembers: 6,
-    isPrivate: false,
-    isRecruiting: true,
-    rank: {
-      tier: 'gold',
-      division: 2,
-      points: 2847
-    },
-    achievements: 8,
-    tournamentsWon: 3,
-    games: ['Counter-Strike 2', 'Valorant'],
-    createdAt: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    name: 'Digital Dragons',
-    description: 'Elite team specializing in MOBA games. Serious players only.',
-    logo: '🐉',
-    captainId: '2',
-    captainName: 'DragonMaster',
-    members: [
-      { id: '4', username: 'DragonMaster', role: 'captain', joinedAt: new Date('2024-01-10'), isActive: true },
-      { id: '5', username: 'FireBreath', role: 'player', joinedAt: new Date('2024-01-20'), isActive: true },
-      { id: '6', username: 'ScaleClaw', role: 'player', joinedAt: new Date('2024-02-10'), isActive: true },
-      { id: '7', username: 'WingStrike', role: 'player', joinedAt: new Date('2024-02-20'), isActive: true },
-      { id: '8', username: 'TailWhip', role: 'substitute', joinedAt: new Date('2024-03-01'), isActive: true },
-    ],
-    maxMembers: 6,
-    isPrivate: true,
-    isRecruiting: false,
-    rank: {
-      tier: 'platinum',
-      division: 4,
-      points: 3456
-    },
-    achievements: 12,
-    tournamentsWon: 7,
-    games: ['League of Legends', 'Dota 2'],
-    createdAt: new Date('2024-01-10')
-  },
-  {
-    id: '3',
-    name: 'Rocket Raiders',
-    description: 'Fun-loving team focused on Rocket League. All skill levels welcome!',
-    logo: '🚀',
-    captainId: '3',
-    captainName: 'RocketCaptain',
-    members: [
-      { id: '9', username: 'RocketCaptain', role: 'captain', joinedAt: new Date('2024-03-01'), isActive: true },
-      { id: '10', username: 'BoostMaster', role: 'player', joinedAt: new Date('2024-03-05'), isActive: true },
-    ],
-    maxMembers: 4,
-    isPrivate: false,
-    isRecruiting: true,
-    rank: {
-      tier: 'silver',
-      division: 3,
-      points: 1832
-    },
-    achievements: 3,
-    tournamentsWon: 1,
-    games: ['Rocket League'],
-    createdAt: new Date('2024-03-01')
-  },
-]
+import { Team } from '@/types'
+import { apiClient } from '@/lib/api-client'
 
 export default function TeamsPage() {
+  const { validateAndPrompt, showPrompt, promptData, closePrompt } = useAuthValidation()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedGame, setSelectedGame] = useState('all')
   const [showRecruitingOnly, setShowRecruitingOnly] = useState(false)
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false)
+  const [teams, setTeams] = useState<Team[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredTeams = mockTeams.filter(team => {
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setLoading(true)
+        const response = await apiClient.getTeams()
+        if (response?.data) {
+          const transformedTeams = response.data.map((team: any) => ({
+            ...team,
+            createdAt: new Date(team.createdAt)
+          }))
+          setTeams(transformedTeams)
+        }
+      } catch (err) {
+        console.error('Failed to fetch teams:', err)
+        setError('Failed to load teams')
+        setTeams([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTeams()
+  }, [])
+
+  const filteredTeams = teams.filter((team: Team) => {
     const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          team.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesGame = selectedGame === 'all' || team.games.includes(selectedGame)
-    const matchesRecruiting = showRecruitingOnly ? team.isRecruiting : true
+    // For now, skip game filtering since games property doesn't exist in Team interface
+    const matchesGame = selectedGame === 'all' // || team.games?.includes(selectedGame)
+    const matchesRecruiting = !showRecruitingOnly || (team.members?.length || 0) < team.maxMembers
     
     return matchesSearch && matchesGame && matchesRecruiting
   })
@@ -149,7 +74,21 @@ export default function TeamsPage() {
     }
   }
 
+  const handleCreateTeam = () => {
+    if (validateAndPrompt('create a team')) {
+      setShowCreateTeamModal(true)
+    }
+  }
+
+  const handleJoinTeam = (teamId: string) => {
+    if (validateAndPrompt('join this team')) {
+      console.log('Joining team:', teamId)
+      // Add actual join logic here
+    }
+  }
+
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
@@ -159,7 +98,7 @@ export default function TeamsPage() {
             <p className="text-slate-400">Find your perfect team or create your own</p>
           </div>
           <button
-            onClick={() => setShowCreateTeamModal(true)}
+            onClick={handleCreateTeam}
             className="bg-gaming-600 hover:bg-gaming-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <PlusIcon className="w-5 h-5" />
@@ -220,16 +159,17 @@ export default function TeamsPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-white">{team.name}</h3>
                     <div className="flex items-center space-x-2">
-                      <span className={`text-sm font-medium capitalize ${getRankColor(team.rank.tier)}`}>
-                        {team.rank.tier} {team.rank.division}
+                      <span className={`text-sm font-medium capitalize ${getRankColor(team.teamRank?.tier || 'bronze')}`}>
+                        {team.teamRank?.tier || 'Bronze'} {team.teamRank?.division || 1}
                       </span>
                       <span className="text-slate-400">•</span>
-                      <span className="text-sm text-slate-400">{team.rank.points.toLocaleString()} pts</span>
+                      <span className="text-sm text-slate-400">{team.teamRank?.points?.toLocaleString() || 0} pts</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {team.isRecruiting && (
+                  {/* Remove recruiting badge for now since isRecruiting doesn't exist in Team interface */}
+                  {false && (
                     <span className="text-xs bg-gaming-500/20 text-gaming-400 px-2 py-1 rounded">
                       Recruiting
                     </span>
@@ -252,42 +192,43 @@ export default function TeamsPage() {
                   <div className="text-xs text-slate-400">Members</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-gaming-400">{team.tournamentsWon}</div>
+                  <div className="text-lg font-semibold text-gaming-400">{0}</div>
                   <div className="text-xs text-slate-400">Tournaments Won</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-accent-400">{team.achievements}</div>
+                  <div className="text-lg font-semibold text-accent-400">{team.achievements.length}</div>
                   <div className="text-xs text-slate-400">Achievements</div>
                 </div>
               </div>
 
-              {/* Games */}
+              {/* Games - temporarily removed since games property doesn't exist in Team interface */}
               <div className="mb-4">
                 <div className="flex flex-wrap gap-2">
-                  {team.games.map((game) => (
-                    <span key={game} className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
-                      {game}
-                    </span>
-                  ))}
+                  <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                    Various Games
+                  </span>
                 </div>
               </div>
 
               {/* Captain */}
               <div className="flex items-center space-x-2 mb-4">
                 <StarIcon className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm text-slate-300">Captain: {team.captainName}</span>
+                <span className="text-sm text-slate-300">
+                  Captain: {team.members?.find(member => member.role === 'captain')?.user?.username || 'Unknown'}
+                </span>
               </div>
 
               {/* Action Button */}
               <button
                 className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                  team.isRecruiting
+                  (team.members?.length || 0) < team.maxMembers
                     ? 'bg-gaming-600 hover:bg-gaming-700 text-white'
                     : 'bg-slate-600 hover:bg-slate-500 text-slate-300'
                 }`}
-                disabled={!team.isRecruiting}
+                disabled={(team.members?.length || 0) >= team.maxMembers}
+                onClick={() => handleJoinTeam(team.id)}
               >
-                {team.isRecruiting ? 'Request to Join' : 'Not Recruiting'}
+                {(team.members?.length || 0) < team.maxMembers ? 'Request to Join' : 'Team Full'}
               </button>
             </div>
           ))}
@@ -362,5 +303,6 @@ export default function TeamsPage() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   )
 }

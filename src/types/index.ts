@@ -8,6 +8,7 @@ export interface User {
   gamesPlayed: number
   tournamentsWon: number
   achievements: Achievement[]
+  gamingAccounts?: GamingAccount[]
   teamId?: string
   sponsorshipStatus?: 'sponsored' | 'available' | 'not_available'
   createdAt: Date
@@ -158,6 +159,26 @@ export interface GameAccount {
   createdAt: Date
 }
 
+export interface GamingAccount {
+  id: string
+  platform: string
+  username: string
+  platformId: string
+  verified: boolean
+  createdAt: string
+  riotData?: {
+    gameName: string
+    tagLine: string
+    puuid: string
+    level: number
+    currentRank?: {
+      tier: string
+      division: string
+      lp: number
+    }
+  }
+}
+
 export interface Leaderboard {
   id: string
   userId?: string
@@ -247,4 +268,31 @@ export interface SeasonReward {
   points: number
   achievements: Achievement[]
   physicalRewards?: PhysicalReward[]
+}
+
+export interface UserActivity {
+  id: string
+  type: 'tournament_win' | 'tournament_participate' | 'tournament_place' | 'achievement' | 'rank_up' | 'match_win' | 'match_loss' | 'team_join'
+  title: string
+  description: string
+  points: number
+  date: Date
+  metadata?: {
+    tournamentId?: string
+    achievementId?: string
+    teamId?: string
+    matchId?: string
+    game?: string
+    placement?: number
+    rarity?: string
+    achievementType?: string
+    role?: string
+    kda?: string
+    score?: number
+  }
+}
+
+export interface ActivityResponse {
+  activities: UserActivity[]
+  total: number
 }

@@ -14,13 +14,13 @@ const steps = [
   {
     id: '03',
     name: 'Join Tournament',
-    description: 'Browse active tournaments and pay the entry fee to join.',
+    description: 'Browse active tournaments and register to join the competition.',
     status: 'complete',
   },
   {
     id: '04',
     name: 'Compete & Win',
-    description: 'Play your matches and climb the bracket to claim prize money.',
+    description: 'Play your matches and climb the bracket to earn points and rankings.',
     status: 'current',
   },
 ]

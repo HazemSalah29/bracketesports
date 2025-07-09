@@ -1,8 +1,8 @@
 const stats = [
-  { name: 'Total Prize Money Distributed', value: '$2.8M+' },
+  { name: 'Total Points Awarded', value: '2.8M+' },
   { name: 'Active Monthly Players', value: '15,000+' },
   { name: 'Tournaments Completed', value: '2,500+' },
-  { name: 'Average Tournament Prize Pool', value: '$1,200' },
+  { name: 'Average Tournament Points', value: '150' },
 ]
 
 export default function Stats() {
@@ -15,7 +15,7 @@ export default function Stats() {
             Join Thousands of Winners
           </p>
           <p className="mt-6 text-lg leading-8 text-slate-300">
-            Our platform has distributed millions in prize money to skilled gamers worldwide.
+            Our platform has awarded millions of points to skilled gamers worldwide.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">

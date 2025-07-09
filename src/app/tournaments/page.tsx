@@ -1,108 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   MagnifyingGlassIcon,
   FunnelIcon,
   PlusIcon
 } from '@heroicons/react/24/outline'
 import TournamentCard from '@/components/dashboard/TournamentCard'
-
-const mockTournaments = [
-  {
-    id: '1',
-    name: 'CS2 Winter Championship',
-    description: 'Elite Counter-Strike 2 tournament featuring top players',
-    game: 'Counter-Strike 2',
-    gameIcon: '🎯',
-    pointsReward: 2500,
-    sponsoredBy: 'SteelSeries',
-    maxParticipants: 128,
-    currentParticipants: 64,
-    startDate: new Date('2025-01-15T18:00:00Z'),
-    endDate: new Date('2025-01-15T22:00:00Z'),
-    registrationDeadline: new Date('2025-01-14T23:59:59Z'),
-    status: 'registering' as const,
-    rules: ['Standard CS2 competitive rules', 'Best of 3 format', 'No cheating or exploits'],
-    skillRequirement: {
-      minRank: { tier: 'bronze' as const, division: 1 as const, points: 0, pointsToNextRank: 1000, season: '2025-S1' },
-      description: 'All skill levels welcome'
-    },
-    tournamentType: 'solo' as const,
-    rewards: [
-      { position: 1, points: 2500, badges: [{ id: 'champion-cs2-winter', name: 'CS2 Winter Champion', description: 'Champion of CS2 Winter Championship', icon: '🏆', type: 'tournament' as const, rarity: 'legendary' as const, unlockedAt: new Date() }] },
-      { position: 2, points: 1500, badges: [{ id: 'runnerup-cs2-winter', name: 'Runner-up', description: 'Second place in CS2 Winter Championship', icon: '🥈', type: 'tournament' as const, rarity: 'epic' as const, unlockedAt: new Date() }] },
-      { position: 3, points: 1000, badges: [{ id: 'third-cs2-winter', name: 'Third Place', description: 'Third place in CS2 Winter Championship', icon: '🥉', type: 'tournament' as const, rarity: 'rare' as const, unlockedAt: new Date() }] },
-    ],
-    createdAt: new Date('2024-12-01T10:00:00Z'),
-    updatedAt: new Date('2024-12-01T10:00:00Z'),
-  },
-  {
-    id: '2',
-    name: 'Valorant Pro Series',
-    description: 'Team-based Valorant tournament for skilled players',
-    game: 'Valorant',
-    gameIcon: '⚡',
-    pointsReward: 1800,
-    sponsoredBy: 'Riot Games',
-    maxParticipants: 64,
-    currentParticipants: 32,
-    startDate: new Date('2025-01-12T20:00:00Z'),
-    endDate: new Date('2025-01-13T02:00:00Z'),
-    registrationDeadline: new Date('2025-01-11T23:59:59Z'),
-    status: 'registering' as const,
-    rules: ['Standard Valorant competitive rules', 'Best of 3 format', 'Team communication required'],
-    skillRequirement: {
-      minRank: { tier: 'silver' as const, division: 1 as const, points: 1000, pointsToNextRank: 1000, season: '2025-S1' },
-      description: 'Intermediate+ players only'
-    },
-    tournamentType: 'team' as const,
-    teamSize: 5,
-    rewards: [
-      { position: 1, points: 1800, badges: [{ id: 'champion-valorant-pro', name: 'Valorant Pro Champion', description: 'Champion of Valorant Pro Series', icon: '🏆', type: 'tournament' as const, rarity: 'legendary' as const, unlockedAt: new Date() }] },
-      { position: 2, points: 1200, badges: [{ id: 'runnerup-valorant-pro', name: 'Runner-up', description: 'Second place in Valorant Pro Series', icon: '🥈', type: 'tournament' as const, rarity: 'epic' as const, unlockedAt: new Date() }] },
-      { position: 3, points: 800, badges: [{ id: 'third-valorant-pro', name: 'Third Place', description: 'Third place in Valorant Pro Series', icon: '🥉', type: 'tournament' as const, rarity: 'rare' as const, unlockedAt: new Date() }] },
-    ],
-    createdAt: new Date('2024-12-01T10:00:00Z'),
-    updatedAt: new Date('2024-12-01T10:00:00Z'),
-  },
-  {
-    id: '3',
-    name: 'Elite Rocket League Cup',
-    description: 'Exclusive Rocket League tournament for expert players',
-    game: 'Rocket League',
-    gameIcon: '🚗',
-    pointsReward: 3200,
-    sponsoredBy: 'Red Bull',
-    maxParticipants: 32,
-    currentParticipants: 24,
-    startDate: new Date('2025-01-10T19:00:00Z'),
-    endDate: new Date('2025-01-11T01:00:00Z'),
-    registrationDeadline: new Date('2025-01-09T23:59:59Z'),
-    status: 'registering' as const,
-    rules: ['Standard Rocket League competitive rules', 'Best of 5 format', 'Team coordination essential'],
-    skillRequirement: {
-      minRank: { tier: 'gold' as const, division: 1 as const, points: 2000, pointsToNextRank: 1000, season: '2025-S1' },
-      description: 'Expert players only'
-    },
-    tournamentType: 'team' as const,
-    teamSize: 3,
-    rewards: [
-      { position: 1, points: 3200, badges: [{ id: 'champion-rl-elite', name: 'Rocket League Elite Champion', description: 'Champion of Elite Rocket League Cup', icon: '🏆', type: 'tournament' as const, rarity: 'legendary' as const, unlockedAt: new Date() }] },
-      { position: 2, points: 2000, badges: [{ id: 'runnerup-rl-elite', name: 'Runner-up', description: 'Second place in Elite Rocket League Cup', icon: '🥈', type: 'tournament' as const, rarity: 'epic' as const, unlockedAt: new Date() }] },
-      { position: 3, points: 1200, badges: [{ id: 'third-rl-elite', name: 'Third Place', description: 'Third place in Elite Rocket League Cup', icon: '🥉', type: 'tournament' as const, rarity: 'rare' as const, unlockedAt: new Date() }] },
-    ],
-    createdAt: new Date('2024-12-01T10:00:00Z'),
-    updatedAt: new Date('2024-12-01T10:00:00Z'),
-  },
-]
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { Tournament } from '@/types'
+import { apiClient } from '@/lib/api-client'
 
 export default function TournamentsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedGame, setSelectedGame] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredTournaments = mockTournaments.filter(tournament => {
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        setLoading(true)
+        const response = await apiClient.getTournaments()
+        if (response?.data) {
+          // Transform the data to match the Tournament interface
+          const transformedTournaments = response.data.map((tournament: any) => ({
+            ...tournament,
+            startDate: new Date(tournament.startDate),
+            endDate: new Date(tournament.endDate),
+            registrationDeadline: new Date(tournament.registrationEnd),
+            createdAt: new Date(tournament.createdAt),
+            updatedAt: new Date(tournament.updatedAt)
+          }))
+          setTournaments(transformedTournaments)
+        }
+      } catch (err) {
+        console.error('Failed to fetch tournaments:', err)
+        setError('Failed to load tournaments')
+        // Fallback to empty array
+        setTournaments([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTournaments()
+  }, [])
+
+  const filteredTournaments = tournaments.filter(tournament => {
     const matchesSearch = tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tournament.game.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesGame = selectedGame === 'all' || tournament.game === selectedGame
@@ -111,12 +58,30 @@ export default function TournamentsPage() {
     return matchesSearch && matchesGame && matchesStatus
   })
 
-  const handleJoinTournament = (tournamentId: string) => {
-    console.log('Joining tournament:', tournamentId)
+  const handleJoinTournament = async (tournamentId: string) => {
+    try {
+      await apiClient.joinTournament(tournamentId)
+      // Refresh tournaments to show updated participant count
+      const response = await apiClient.getTournaments()
+      if (response?.data) {
+        const transformedTournaments = response.data.map((tournament: any) => ({
+          ...tournament,
+          startDate: new Date(tournament.startDate),
+          endDate: new Date(tournament.endDate),
+          registrationDeadline: new Date(tournament.registrationEnd),
+          createdAt: new Date(tournament.createdAt),
+          updatedAt: new Date(tournament.updatedAt)
+        }))
+        setTournaments(transformedTournaments)
+      }
+    } catch (err) {
+      console.error('Failed to join tournament:', err)
+    }
   }
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <ProtectedRoute>
+      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -190,17 +155,34 @@ export default function TournamentsPage() {
         </div>
 
         {/* Tournament Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredTournaments.map((tournament) => (
-            <TournamentCard 
-              key={tournament.id}
-              tournament={tournament}
-              onJoin={() => handleJoinTournament(tournament.id)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gaming-500"></div>
+            <span className="ml-3 text-slate-400">Loading tournaments...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16">
+            <div className="text-red-400 mb-4">{error}</div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-gaming-600 hover:bg-gaming-700 text-white rounded-lg transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredTournaments.map((tournament) => (
+              <TournamentCard 
+                key={tournament.id}
+                tournament={tournament}
+                onJoin={() => handleJoinTournament(tournament.id)}
+              />
+            ))}
+          </div>
+        )}
 
-        {filteredTournaments.length === 0 && (
+        {!loading && !error && filteredTournaments.length === 0 && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🏆</div>
             <h3 className="text-xl font-semibold text-slate-400 mb-2">
@@ -213,5 +195,6 @@ export default function TournamentsPage() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   )
 }

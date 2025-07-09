@@ -40,7 +40,7 @@ export default function Footer() {
             </div>
             <p className="text-sm leading-6 text-slate-300">
               The premier esports tournament platform where skill meets opportunity. 
-              Connect your gaming accounts, join tournaments, and compete for real prizes.
+              Connect your gaming accounts, join tournaments, and compete for points and rankings.
             </p>
             <div className="flex space-x-6">
               {/* Social media icons would go here */}

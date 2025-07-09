@@ -11,18 +11,32 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline'
 import { Tournament } from '@/types'
+import { TournamentResponse } from '@/types/api'
+import { useAuthValidation } from '@/hooks/useAuthValidation'
+import AuthPrompt from '@/components/auth/AuthPrompt'
+import { GameIcon } from '@/components/ui/GameIcons'
 
 interface TournamentCardProps {
-  tournament: Tournament
-  onJoin: () => void
+  tournament: Tournament | TournamentResponse
+  onJoin?: () => void
 }
 
 export default function TournamentCard({ tournament, onJoin }: TournamentCardProps) {
+  const { validateAndPrompt, showPrompt, promptData, closePrompt } = useAuthValidation()
+
   const spotsLeft = tournament.maxParticipants - tournament.currentParticipants
   const isTeamBased = tournament.tournamentType === 'team' || tournament.tournamentType === 'mixed'
-  const skillLevel = tournament.skillRequirement.description
+  const skillLevel = tournament.skillRequirement?.description || 'Any Skill Level'
   const isAlmostFull = spotsLeft <= 5
   const isFull = spotsLeft === 0
+
+  const handleJoinClick = () => {
+    const actionText = isTeamBased ? 'join this team tournament' : 'join this tournament'
+    
+    if (validateAndPrompt(actionText)) {
+      onJoin?.()
+    }
+  }
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -69,7 +83,12 @@ export default function TournamentCard({ tournament, onJoin }: TournamentCardPro
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="text-2xl">{tournament.gameIcon}</div>
+          <div className="text-2xl">
+            <GameIcon 
+              gameId={(tournament as any).gameId || tournament.game.toLowerCase().replace(/\s+/g, '-')} 
+              size={32} 
+            />
+          </div>
           <div>
             <h3 className="text-lg font-semibold text-white">{tournament.name}</h3>
             <p className="text-sm text-slate-400">{tournament.game}</p>
@@ -102,7 +121,7 @@ export default function TournamentCard({ tournament, onJoin }: TournamentCardPro
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <StarIcon className="w-5 h-5 text-gaming-400" />
-            <span className="text-xl font-bold text-gaming-400 prize-glow">
+            <span className="text-xl font-bold text-gaming-400 points-glow">
               {tournament.pointsReward.toLocaleString()}
             </span>
           </div>
@@ -173,7 +192,7 @@ export default function TournamentCard({ tournament, onJoin }: TournamentCardPro
         )}
         
         <button
-          onClick={onJoin}
+          onClick={handleJoinClick}
           disabled={isFull || tournament.status !== 'registering'}
           className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 ${
             isFull || tournament.status !== 'registering'
@@ -193,6 +212,17 @@ export default function TournamentCard({ tournament, onJoin }: TournamentCardPro
           }
         </button>
       </div>
+
+      {/* Auth Prompt */}
+      {showPrompt && promptData && (
+        <AuthPrompt
+          isOpen={showPrompt}
+          onClose={closePrompt}
+          title={promptData.title}
+          message={promptData.message}
+          actionType={promptData.actionType}
+        />
+      )}
     </div>
   )
 }

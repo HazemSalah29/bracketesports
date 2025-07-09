@@ -13,6 +13,9 @@ import {
   EyeIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
+import TournamentLobby from '@/components/tournaments/TournamentLobby';
+import MatchStats from '@/components/tournaments/MatchStats';
+import TournamentAdminControls from '@/components/tournaments/TournamentAdminControls';
 
 // Mock tournament data
 const mockTournament = {
@@ -417,6 +420,31 @@ export default function TournamentBracketPage() {
               Round {mockTournament.currentRound} of {mockTournament.totalRounds}
             </span>
           </div>
+        </div>
+
+        {/* Tournament Lobby (for organizers and participants) */}
+        {(mockTournament.status === 'registration' || mockTournament.status === 'live') && (
+          <div className="gaming-card rounded-xl p-6 mt-8">
+            <h2 className="text-xl font-bold text-white mb-4">Tournament Lobby</h2>
+            <TournamentLobby tournamentId={mockTournament.id} gameMode="VALORANT" />
+          </div>
+        )}
+
+        {/* Match Statistics */}
+        {mockTournament.status === 'live' && (
+          <div className="gaming-card rounded-xl p-6 mt-8">
+            <h2 className="text-xl font-bold text-white mb-4">Live Match Statistics</h2>
+            <MatchStats tournamentId={mockTournament.id} gameMode="VALORANT" />
+          </div>
+        )}
+
+        {/* Tournament Admin Controls (for organizers) */}
+        <div className="gaming-card rounded-xl p-6 mt-8">
+          <TournamentAdminControls 
+            tournamentId={mockTournament.id} 
+            gameMode="VALORANT"
+            isOrganizer={true} // In real implementation, check if current user is organizer
+          />
         </div>
       </div>
 

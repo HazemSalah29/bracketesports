@@ -1,7 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuthValidation } from '@/hooks/useAuthValidation'
+import AuthPrompt from '@/components/auth/AuthPrompt'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { GameIcon } from '@/components/ui/GameIcons'
 import { 
   ArrowLeftIcon,
   CalendarIcon,
@@ -14,18 +18,19 @@ import {
 } from '@heroicons/react/24/outline'
 
 const gameOptions = [
-  { id: 'cs2', name: 'Counter-Strike 2', icon: '🎯' },
-  { id: 'valorant', name: 'Valorant', icon: '⚡' },
-  { id: 'rocket-league', name: 'Rocket League', icon: '🚗' },
-  { id: 'lol', name: 'League of Legends', icon: '⚔️' },
-  { id: 'dota2', name: 'Dota 2', icon: '🛡️' },
-  { id: 'fortnite', name: 'Fortnite', icon: '🏗️' },
-  { id: 'apex', name: 'Apex Legends', icon: '🎯' },
-  { id: 'overwatch2', name: 'Overwatch 2', icon: '🎮' },
+  { id: 'cs2', name: 'Counter-Strike 2' },
+  { id: 'valorant', name: 'Valorant' },
+  { id: 'rocket-league', name: 'Rocket League' },
+  { id: 'lol', name: 'League of Legends' },
+  { id: 'dota2', name: 'Dota 2' },
+  { id: 'fortnite', name: 'Fortnite' },
+  { id: 'apex', name: 'Apex Legends' },
+  { id: 'overwatch2', name: 'Overwatch 2' },
 ]
 
 export default function CreateTournamentPage() {
   const router = useRouter()
+  const { validateAndPrompt, showPrompt, promptData, closePrompt } = useAuthValidation()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -49,6 +54,14 @@ export default function CreateTournamentPage() {
 
   const [errors, setErrors] = useState<{[key: string]: string}>({})
   const [successMessage, setSuccessMessage] = useState('')
+
+  // Check validation on component mount
+  useEffect(() => {
+    if (!validateAndPrompt('create a tournament')) {
+      // Validation failed - user will see the prompt
+      return
+    }
+  }, [validateAndPrompt])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -149,7 +162,8 @@ export default function CreateTournamentPage() {
     : 0
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <ProtectedRoute>
+      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -237,7 +251,7 @@ export default function CreateTournamentPage() {
                   <option value="">Select a game</option>
                   {gameOptions.map(game => (
                     <option key={game.id} value={game.name}>
-                      {game.icon} {game.name}
+                      {game.name}
                     </option>
                   ))}
                 </select>
@@ -552,7 +566,19 @@ export default function CreateTournamentPage() {
             </button>
           </div>
         </form>
+        
+        {/* Auth Prompt */}
+        {showPrompt && promptData && (
+          <AuthPrompt
+            isOpen={showPrompt}
+            onClose={closePrompt}
+            title={promptData.title}
+            message={promptData.message}
+            actionType={promptData.actionType}
+          />
+        )}
       </div>
     </div>
+    </ProtectedRoute>
   )
 }

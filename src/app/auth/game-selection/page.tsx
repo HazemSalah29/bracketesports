@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckIcon } from '@heroicons/react/24/outline'
+import { useAuth } from '@/contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 const games = [
   {
@@ -16,7 +18,7 @@ const games = [
   {
     id: 'valorant',
     name: 'Valorant',
-    image: '/images/games/valorant.jpg',
+    image: '/images/Valorant-LogoWithText.png',
     description: 'Character-based tactical shooter',
     category: 'FPS',
     popularity: 'High',
@@ -32,7 +34,7 @@ const games = [
   {
     id: 'lol',
     name: 'League of Legends',
-    image: '/images/games/lol.jpg',
+    image: '/images/League-of-Legends-LogoWithText.png',
     description: 'Multiplayer online battle arena',
     category: 'MOBA',
     popularity: 'High',
@@ -75,6 +77,7 @@ export default function GameSelectionPage() {
   const [selectedGames, setSelectedGames] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { user } = useAuth()
 
   const handleGameToggle = (gameId: string) => {
     setSelectedGames(prev => 
@@ -86,17 +89,25 @@ export default function GameSelectionPage() {
 
   const handleContinue = async () => {
     if (selectedGames.length === 0) {
-      alert('Please select at least one game you play!')
+      toast.error('Please select at least one game you play!')
       return
     }
 
     setIsLoading(true)
     
-    // Simulate API call to save user preferences
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Redirect to dashboard/home
-    router.push('/dashboard')
+    try {
+      // Save game preferences (this could be saved to user profile)
+      // For now, we'll store them in localStorage and continue
+      localStorage.setItem('selectedGames', JSON.stringify(selectedGames))
+      toast.success('Game preferences saved!')
+      
+      // Redirect to dashboard
+      router.push('/dashboard')
+    } catch (error) {
+      toast.error('Failed to save preferences')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSkip = () => {
@@ -113,6 +124,9 @@ export default function GameSelectionPage() {
           <p className="text-lg text-slate-300 max-w-2xl mx-auto">
             Select the games you&apos;re interested in competing in. This will help us 
             show you the most relevant tournaments and matches.
+          </p>
+          <p className="text-sm text-accent-400 mt-2">
+            💡 You can link your gaming accounts later in your profile settings to verify your rank and stats.
           </p>
         </div>
 

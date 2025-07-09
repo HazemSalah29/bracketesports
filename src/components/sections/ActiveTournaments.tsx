@@ -1,12 +1,13 @@
 import Link from 'next/link'
+import { GameIcon } from '@/components/ui/GameIcons'
 
 const tournaments = [
   {
     id: 1,
     name: 'CS:GO Winter Championship',
     game: 'Counter-Strike: Global Offensive',
-    entryFee: 25,
-    prizePool: 5000,
+    gameId: 'cs2',
+    pointsReward: 500,
     participants: 64,
     maxParticipants: 64,
     startDate: '2025-01-15T18:00:00Z',
@@ -16,8 +17,8 @@ const tournaments = [
     id: 2,
     name: 'Valorant Weekly Showdown',
     game: 'Valorant',
-    entryFee: 15,
-    prizePool: 2500,
+    gameId: 'valorant',
+    pointsReward: 250,
     participants: 28,
     maxParticipants: 32,
     startDate: '2025-01-12T20:00:00Z',
@@ -27,8 +28,8 @@ const tournaments = [
     id: 3,
     name: 'Rocket League Boost Cup',
     game: 'Rocket League',
-    entryFee: 10,
-    prizePool: 1200,
+    gameId: 'rocket-league',
+    pointsReward: 150,
     participants: 16,
     maxParticipants: 16,
     startDate: '2025-01-10T19:00:00Z',
@@ -63,19 +64,22 @@ export default function ActiveTournaments() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-slate-400">Prize Pool</div>
-                  <div className="text-lg font-bold text-accent-500 prize-glow">
-                    ${tournament.prizePool.toLocaleString()}
+                  <div className="text-sm text-slate-400">Points Reward</div>
+                  <div className="text-lg font-bold text-gaming-400">
+                    {tournament.pointsReward} pts
                   </div>
                 </div>
               </div>
               <div className="mt-4">
                 <h3 className="text-lg font-semibold text-white">{tournament.name}</h3>
-                <p className="mt-1 text-sm text-slate-400">{tournament.game}</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <GameIcon gameId={tournament.gameId} size={20} />
+                  <p className="text-sm text-slate-400">{tournament.game}</p>
+                </div>
               </div>
               <div className="mt-6 flex items-center justify-between">
                 <div className="text-sm text-slate-300">
-                  <div>Entry Fee: ${tournament.entryFee}</div>
+                  <div>Free Entry</div>
                   <div>Players: {tournament.participants}/{tournament.maxParticipants}</div>
                 </div>
                 <div className="text-right">
