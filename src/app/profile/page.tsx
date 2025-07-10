@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { 
   UserCircleIcon, 
   TrophyIcon, 
@@ -12,7 +13,8 @@ import {
   PlayIcon,
   UsersIcon,
   SparklesIcon,
-  PlayIcon as GamepadIcon
+  PlayIcon as GamepadIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiClient } from '@/lib/api-client'
@@ -46,14 +48,25 @@ export default function ProfilePage() {
   const [selectedAccount, setSelectedAccount] = useState<GamingAccount | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [userActivity, setUserActivity] = useState<UserActivity[]>([])
+  const [coinBalance, setCoinBalance] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingActivity, setIsLoadingActivity] = useState(false)
 
   useEffect(() => {
     if (user) {
       fetchUserProfile()
+      fetchCoinBalance()
     }
   }, [user])
+
+  const fetchCoinBalance = async () => {
+    try {
+      const data = await apiClient.getCoinBalance()
+      setCoinBalance(data.balance)
+    } catch (error) {
+      console.error('Failed to fetch coin balance:', error)
+    }
+  }
 
   useEffect(() => {
     if (user && activeTab === 'activity') {
@@ -144,10 +157,13 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <button className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors">
+            <Link 
+              href="/settings"
+              className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
               <CogIcon className="w-4 h-4" />
               <span>Settings</span>
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -181,7 +197,25 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+          <div className="bg-gradient-to-r from-yellow-600 to-amber-500 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-yellow-100 text-sm">Bracket Coins</p>
+                <p className="text-2xl font-bold text-white coin-glow">
+                  {coinBalance.toLocaleString()}
+                </p>
+              </div>
+              <CurrencyDollarIcon className="w-8 h-8 text-white" />
+            </div>
+            <Link
+              href="/coins"
+              className="block mt-3 text-xs text-yellow-100 hover:text-white transition-colors"
+            >
+              Buy more coins →
+            </Link>
+          </div>
+          
           <div className="bg-slate-800 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>

@@ -31,6 +31,9 @@ model User {
   tournamentsWon   Int            @default(0)
   gamesPlayed      Int            @default(0)
 
+  // Virtual Currency
+  coinBalance      Int            @default(0)
+
   // Relationships
   teamMemberships  TeamMember[]
   ownedTeams       Team[]         @relation("TeamOwner")
@@ -41,6 +44,8 @@ model User {
   sessions         Session[]
   matchStats       PlayerMatchStats[]
   roundStats       PlayerRoundStats[]
+  creator          Creator?
+  coinTransactions BracketCoin[]
 
   @@map("users")
 }
@@ -148,10 +153,24 @@ model Tournament {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
+  // Creator Tournament Fields
+  creatorId             String?
+  creator               Creator? @relation(fields: [creatorId], references: [id])
+  entryFeeCoin          Int?     // Entry fee in Bracket Coins
+  isCreatorTournament   Boolean  @default(false)
+  
+  // Prize Structure (Creator-Defined)
+  prizeType             PrizeType @default(EXPERIENCE)
+  prizeDescription      String?  // Creator's description of what winners get
+  cashPrizePool         Float?   // Optional cash prize (creator's responsibility)
+  coinPrizePool         Int?     // Optional coin prize
+  experiencePrize       String?  // Description of experience-based rewards
+
   participants          TournamentParticipant[]
   rewards               TournamentReward[]
   customLobbies         CustomGameLobby[]
   matches               TournamentMatch[]
+  coinTransactions      BracketCoin[]
 
   @@map("tournaments")
 }
@@ -348,4 +367,134 @@ model PlayerRoundStats {
   user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("player_round_stats")
+}
+
+// Content Creator Program Models
+model Creator {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  
+  // Creator Details
+  handle      String   @unique
+  tier        CreatorTier @default(EMERGING)
+  status      CreatorStatus @default(PENDING)
+  
+  // Social Media
+  twitchUrl   String?
+  youtubeUrl  String?
+  tiktokUrl   String?
+  discordUrl  String?
+  followerCount Int     @default(0)
+  
+  // Revenue & Analytics
+  totalEarnings Float   @default(0)
+  revenueShare  Int     @default(60) // Percentage
+  
+  // Verification
+  appliedAt   DateTime @default(now())
+  verifiedAt  DateTime?
+  rejectedAt  DateTime?
+  rejectionReason String?
+  
+  // Relations
+  tournaments Tournament[]
+  payouts     CreatorPayout[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("creators")
+}
+
+model BracketCoin {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  amount      Int      // Coin amount (positive for purchases/winnings, negative for spending)
+  type        CoinTransactionType
+  status      TransactionStatus @default(PENDING)
+  
+  // Purchase Details (for purchases)
+  dollarAmount Float?
+  paymentId   String?  // Stripe payment intent ID
+  
+  // Tournament Details (for spending)
+  tournamentId String?
+  tournament  Tournament? @relation(fields: [tournamentId], references: [id])
+  
+  // Metadata
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("bracket_coins")
+}
+
+model CreatorPayout {
+  id          String   @id @default(cuid())
+  creatorId   String
+  creator     Creator  @relation(fields: [creatorId], references: [id])
+  
+  amount      Float
+  status      PayoutStatus @default(PENDING)
+  period      String   // "2025-01", "2025-02" etc.
+  
+  // Payment Details
+  paymentMethod String? // "stripe", "paypal"
+  paymentId   String?
+  paidAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("creator_payouts")
+}
+
+// Enums
+enum CreatorTier {
+  EMERGING    // 10K-50K followers - 60% share
+  RISING      // 50K-250K followers - 65% share
+  PARTNER     // 250K-1M followers - 70% share
+  ELITE       // 1M+ followers - 75% share
+}
+
+enum CreatorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum PrizeType {
+  EXPERIENCE    // Coaching, content features, community access
+  COINS         // Platform coins (redeemable)
+  CASH          // Direct cash from creator
+  MERCHANDISE   // Physical items
+  HYBRID        // Combination of above
+}
+
+enum CoinTransactionType {
+  PURCHASE
+  TOURNAMENT_ENTRY
+  TOURNAMENT_REFUND
+  PRIZE_WINNING
+  BONUS
+  TRANSFER
+  REDEMPTION
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }

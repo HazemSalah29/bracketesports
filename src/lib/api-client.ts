@@ -464,6 +464,34 @@ class ApiClient {
     )
     return response.data
   }
+
+  // Coin Management
+  async getCoinBalance(): Promise<{ balance: number }> {
+    return this.request('/api/coins/balance')
+  }
+
+  async purchaseCoins(data: { packageId: string }): Promise<{ clientSecret: string }> {
+    return this.request('/api/coins/purchase', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  // Creator Management
+  async applyAsCreator(data: any): Promise<any> {
+    return this.request('/api/creators/apply', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async getCreatorTournaments(): Promise<any[]> {
+    return this.request('/api/creator/tournaments')
+  }
+
+  async getCreatorAnalytics(): Promise<any> {
+    return this.request('/api/creator/analytics')
+  }
 }
 
 // Export singleton instance
@@ -495,4 +523,9 @@ export const {
   markNotificationRead,
   markAllNotificationsRead,
   getUserActivity,
+  getCoinBalance,
+  purchaseCoins,
+  applyAsCreator,
+  getCreatorTournaments,
+  getCreatorAnalytics,
 } = apiClient

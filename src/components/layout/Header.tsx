@@ -1,23 +1,43 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { t } from '@/lib/translations'
 import { KEYS } from '@/constants/keys'
+import { apiClient } from '@/lib/api-client'
 import { 
   Bars3Icon, 
   XMarkIcon, 
   UserIcon,
   ChevronDownIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  CurrencyDollarIcon,
+  StarIcon
 } from '@heroicons/react/24/outline'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [coinBalance, setCoinBalance] = useState(0)
   const { user, isAuthenticated, logout } = useAuth()
+
+  // Fetch coin balance when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchCoinBalance()
+    }
+  }, [isAuthenticated, user])
+
+  const fetchCoinBalance = async () => {
+    try {
+      const data = await apiClient.getCoinBalance()
+      setCoinBalance(data.balance)
+    } catch (error) {
+      console.error('Failed to fetch coin balance:', error)
+    }
+  }
 
   const handleLogout = () => {
     logout()
@@ -74,16 +94,22 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated && user ? (
               <>
-                {/* User Points */}
-                <div className="flex items-center space-x-2 bg-slate-800 px-3 py-1 rounded-lg">
-                  <span className="text-gaming-400 text-sm font-medium">
-                    {user.totalPoints} pts
-                  </span>
-                  <span className="text-slate-500">•</span>
-                  <span className="text-slate-300 text-sm">
-                    {user.rank?.tier || 'Bronze'} {user.rank?.division || 1}
+                {/* Coin Balance */}
+                <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-600 to-amber-500 px-3 py-2 rounded-lg shadow-lg">
+                  <CurrencyDollarIcon className="w-4 h-4 text-white" />
+                  <span className="text-white font-bold text-sm">
+                    {coinBalance.toLocaleString()} BC
                   </span>
                 </div>
+
+                {/* Buy Coins Button */}
+                <Link
+                  href="/coins"
+                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1"
+                >
+                  <StarIcon className="w-4 h-4" />
+                  <span>Buy Coins</span>
+                </Link>
 
                 {/* User Dropdown */}
                 <div className="relative">
@@ -208,12 +234,25 @@ export default function Header() {
                       </div>
                       <div>
                         <div className="text-white font-medium">{user.username}</div>
-                        <div className="text-slate-400 text-sm">
-                          {user.totalPoints} pts • {user.rank?.tier || 'Bronze'} {user.rank?.division || 1}
+                        <div className="flex items-center space-x-2 mt-1">
+                          <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-600 to-amber-500 px-2 py-1 rounded">
+                            <CurrencyDollarIcon className="w-3 h-3 text-white" />
+                            <span className="text-white font-bold text-xs">
+                              {coinBalance.toLocaleString()} BC
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  <Link
+                    href="/coins"
+                    className="flex px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium items-center space-x-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <StarIcon className="w-4 h-4" />
+                    <span>Buy Coins</span>
+                  </Link>
                   <Link
                     href="/profile"
                     className="block px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md"

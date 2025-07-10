@@ -11,7 +11,8 @@ import {
   LinkIcon,
   CreditCardIcon,
   ChevronRightIcon,
-  CogIcon
+  CogIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
 import { useTranslation } from '@/lib/translations'
 import { KEYS } from '@/constants/keys'
@@ -51,6 +52,14 @@ export default function SettingsPage() {
       icon: LinkIcon,
       href: '/settings/gaming-accounts',
       color: 'text-purple-500'
+    },
+    {
+      id: 'coins',
+      name: 'Bracket Coins',
+      description: 'Manage your coin balance, purchase history, and settings',
+      icon: CurrencyDollarIcon,
+      href: '/coins',
+      color: 'text-yellow-500'
     },
     {
       id: 'preferences',
@@ -146,6 +155,13 @@ export default function SettingsPage() {
             >
               <LinkIcon className="w-5 h-5 text-purple-500" />
               <span className="text-white">Link Game Account</span>
+            </Link>
+            <Link
+              href="/coins"
+              className="flex items-center space-x-3 p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+            >
+              <CurrencyDollarIcon className="w-5 h-5 text-yellow-500" />
+              <span className="text-white">Buy Bracket Coins</span>
             </Link>
           </div>
         </div>

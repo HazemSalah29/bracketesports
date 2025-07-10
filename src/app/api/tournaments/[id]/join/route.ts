@@ -31,7 +31,8 @@ export async function POST(
     const tournament = await prisma.tournament.findUnique({
       where: { id: params.id },
       include: {
-        participants: true
+        participants: true,
+        creator: true
       }
     })
 
@@ -44,10 +45,25 @@ export async function POST(
       return ApiResponse.forbidden('Private tournaments not yet supported')
     }
 
-    // Check if registration is open (registration dates not implemented yet)
+    // Check if registration is open
     const now = new Date()
-    if (now < tournament.startDate) {
-      return ApiResponse.error('Tournament has not started yet', 400)
+    if (tournament.status !== 'registering') {
+      return ApiResponse.error('Registration is closed for this tournament', 400)
+    }
+
+    // For creator tournaments, check if user has enough coins
+    if (tournament.isCreatorTournament && tournament.entryFeeCoin) {
+      const userWithBalance = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { coinBalance: true }
+      })
+
+      if (!userWithBalance || userWithBalance.coinBalance < tournament.entryFeeCoin) {
+        return ApiResponse.error(
+          `Insufficient coins. Required: ${tournament.entryFeeCoin}, Available: ${userWithBalance?.coinBalance || 0}`,
+          400
+        )
+      }
     }
 
     if (now > tournament.endDate) {
@@ -100,32 +116,75 @@ export async function POST(
       }
     }
 
-    // Create participation record
-    const participation = await prisma.tournamentParticipant.create({
-      data: {
-        tournamentId: params.id,
-        userId: user.id,
-        teamId: teamId || null
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true
+    // Create participation record with coin transaction for creator tournaments
+    const participation = await prisma.$transaction(async (tx: any) => {
+      // Handle coin payment for creator tournaments
+      if (tournament.isCreatorTournament && tournament.entryFeeCoin) {
+        // Deduct coins from user
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            coinBalance: {
+              decrement: tournament.entryFeeCoin
+            }
           }
+        })
+
+        // Record coin transaction
+        await tx.bracketCoin.create({
+          data: {
+            userId: user.id,
+            amount: -tournament.entryFeeCoin,
+            type: 'TOURNAMENT_ENTRY',
+            status: 'COMPLETED',
+            tournamentId: params.id,
+            description: `Entry fee for ${tournament.name}`
+          }
+        })
+      }
+
+      // Create participation record
+      const newParticipation = await tx.tournamentParticipant.create({
+        data: {
+          tournamentId: params.id,
+          userId: user.id,
+          teamId: teamId || null
         },
-        team: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true
+            }
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true
+            }
           }
         }
-      }
+      })
+
+      // Update tournament participant count
+      await tx.tournament.update({
+        where: { id: params.id },
+        data: {
+          currentParticipants: {
+            increment: 1
+          }
+        }
+      })
+
+      return newParticipation
     })
 
-    return ApiResponse.success(participation, 'Successfully joined tournament')
+    return ApiResponse.success({
+      ...participation,
+      coinsDeducted: tournament.entryFeeCoin || 0
+    }, 'Successfully joined tournament')
 
   } catch (error) {
     return handleApiError(error, 'join tournament')
@@ -145,17 +204,28 @@ export async function DELETE(
     }
 
     const tournament = await prisma.tournament.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
+      include: {
+        creator: true
+      }
     })
 
     if (!tournament) {
       return ApiResponse.notFound('Tournament not found')
     }
 
-    // Check if tournament has started
+    // Check if tournament has started or is too close to start
     const now = new Date()
+    const tournamentStart = new Date(tournament.startDate)
+    const hoursUntilStart = (tournamentStart.getTime() - now.getTime()) / (1000 * 60 * 60)
+
     if (tournament.startDate <= now) {
       return ApiResponse.error('Cannot leave tournament that has already started', 400)
+    }
+
+    // For creator tournaments, allow cancellation only if at least 1 hour before start
+    if (tournament.isCreatorTournament && hoursUntilStart < 1) {
+      return ApiResponse.error('Cannot cancel registration less than 1 hour before tournament starts', 400)
     }
 
     const participation = await prisma.tournamentParticipant.findFirst({
@@ -169,11 +239,52 @@ export async function DELETE(
       return ApiResponse.error('You are not participating in this tournament', 404)
     }
 
-    await prisma.tournamentParticipant.delete({
-      where: { id: participation.id }
+    // Handle refund and participation removal in transaction
+    await prisma.$transaction(async (tx: any) => {
+      // Remove participation
+      await tx.tournamentParticipant.delete({
+        where: { id: participation.id }
+      })
+
+      // Handle coin refund for creator tournaments
+      if (tournament.isCreatorTournament && tournament.entryFeeCoin) {
+        // Refund coins to user
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            coinBalance: {
+              increment: tournament.entryFeeCoin
+            }
+          }
+        })
+
+        // Record refund transaction
+        await tx.bracketCoin.create({
+          data: {
+            userId: user.id,
+            amount: tournament.entryFeeCoin,
+            type: 'TOURNAMENT_REFUND',
+            status: 'COMPLETED',
+            tournamentId: params.id,
+            description: `Refund for ${tournament.name}`
+          }
+        })
+      }
+
+      // Update tournament participant count
+      await tx.tournament.update({
+        where: { id: params.id },
+        data: {
+          currentParticipants: {
+            decrement: 1
+          }
+        }
+      })
     })
 
-    return ApiResponse.success(null, 'Successfully left tournament')
+    return ApiResponse.success({
+      coinsRefunded: tournament.entryFeeCoin || 0
+    }, 'Successfully left tournament')
 
   } catch (error) {
     return handleApiError(error, 'leave tournament')

@@ -86,6 +86,17 @@ export async function GET(request: NextRequest) {
             select: {
               participants: true
             }
+          },
+          creator: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatar: true
+                }
+              }
+            }
           }
         },
         orderBy: { [pagination.sortBy || 'createdAt']: pagination.sortOrder },
@@ -112,6 +123,17 @@ export async function GET(request: NextRequest) {
       status: getTournamentStatus(tournament),
       pointsReward: tournament.pointsReward,
       isPrivate: tournament.isPrivate,
+      isCreatorTournament: tournament.isCreatorTournament,
+      entryFeeCoin: tournament.entryFeeCoin,
+      prizeType: tournament.prizeType,
+      prizeDescription: tournament.prizeDescription,
+      creator: tournament.creator ? {
+        id: tournament.creator.id,
+        handle: tournament.creator.handle,
+        tier: tournament.creator.tier,
+        followerCount: tournament.creator.followerCount,
+        user: tournament.creator.user
+      } : null,
       createdAt: tournament.createdAt
     }))
 

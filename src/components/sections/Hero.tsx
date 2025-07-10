@@ -2,13 +2,20 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { PlayIcon, TrophyIcon, UserGroupIcon, StarIcon } from '@heroicons/react/24/outline'
+import { 
+  PlayIcon, 
+  TrophyIcon, 
+  UserGroupIcon, 
+  StarIcon, 
+  CurrencyDollarIcon,
+  SparklesIcon
+} from '@heroicons/react/24/outline'
 
 const stats = [
-  { id: 1, name: 'Active Players', value: '15K+', icon: UserGroupIcon },
-  { id: 2, name: 'Tournaments Hosted', value: '2.5K+', icon: TrophyIcon },
-  { id: 3, name: 'Points Awarded', value: '2.8M+', icon: StarIcon },
-  { id: 4, name: 'Games Supported', value: '25+', icon: PlayIcon },
+  { id: 1, name: 'Active Creators', value: '500+', icon: UserGroupIcon },
+  { id: 2, name: 'Creator Tournaments', value: '1.2K+', icon: TrophyIcon },
+  { id: 3, name: 'Coins Earned', value: '5.2M+', icon: CurrencyDollarIcon },
+  { id: 4, name: 'Games Supported', value: '10+', icon: PlayIcon },
 ]
 
 export default function Hero() {
@@ -26,26 +33,45 @@ export default function Hero() {
             transition={{ duration: 0.5 }}
           >
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl font-gaming">
-              Compete. Win. <span className="text-gaming-500">Earn.</span>
+              Play with <span className="text-yellow-500">Creators.</span> Win <span className="text-green-500">Prizes.</span>
             </h1>
             <p className="mt-6 text-lg leading-8 text-slate-300">
-              Join the ultimate esports tournament platform. Connect your gaming accounts, 
-              enter tournaments and compete for points and ranking progression. 
-              Your skills, your rewards.
+              Join exclusive tournaments hosted by your favorite gaming creators. 
+              Buy Bracket Coins, compete in premium experiences, and win amazing prizes. 
+              Where fans meet their gaming heroes.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
                 href="/auth/register"
-                className="bg-gaming-600 hover:bg-gaming-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-all duration-200 neon-glow hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-all duration-200 shadow-lg hover:scale-105"
               >
-                Start Competing
+                <div className="flex items-center space-x-2">
+                  <StarIcon className="w-5 h-5" />
+                  <span>Start Playing</span>
+                </div>
               </Link>
               <Link
-                href="/tournaments"
-                className="text-sm font-semibold leading-6 text-slate-300 hover:text-white transition-colors"
+                href="/coins"
+                className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-all duration-200 shadow-lg hover:scale-105"
               >
-                View Tournaments <span aria-hidden="true">→</span>
+                <div className="flex items-center space-x-2">
+                  <CurrencyDollarIcon className="w-5 h-5" />
+                  <span>Buy Coins</span>
+                </div>
               </Link>
+            </div>
+            
+            {/* Creator Economy Highlight */}
+            <div className="mt-8 flex items-center justify-center space-x-4 text-sm">
+              <div className="flex items-center space-x-1 text-yellow-400">
+                <SparklesIcon className="w-4 h-4" />
+                <span>Play with verified creators</span>
+              </div>
+              <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
+              <div className="flex items-center space-x-1 text-green-400">
+                <TrophyIcon className="w-4 h-4" />
+                <span>Win exclusive prizes</span>
+              </div>
             </div>
           </motion.div>
         </div>

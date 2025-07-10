@@ -1,48 +1,48 @@
 import {
   UserPlusIcon,
-  LinkIcon,
-  TrophyIcon,
   StarIcon,
-  ShieldCheckIcon,
-  ClockIcon,
+  TrophyIcon,
+  CurrencyDollarIcon,
+  SparklesIcon,
+  GiftIcon,
 } from '@heroicons/react/24/outline';
 
 const features = [
   {
-    name: 'Easy Registration',
+    name: 'Play with Creators',
     description:
-      'Sign up in minutes and verify your gaming skills with our secure account linking system.',
-    icon: UserPlusIcon,
-  },
-  {
-    name: 'Game Account Integration',
-    description:
-      'Connect your gaming accounts from popular platforms like Steam, Epic Games, and more.',
-    icon: LinkIcon,
-  },
-  {
-    name: 'Tournament Variety',
-    description:
-      'Choose from daily, weekly, and monthly tournaments across multiple game titles.',
-    icon: TrophyIcon,
-  },
-  {
-    name: 'Points & Rankings',
-    description:
-      'Earn points for tournament performance and climb through competitive ranks.',
+      'Join exclusive tournaments hosted by verified gaming creators and streamers.',
     icon: StarIcon,
   },
   {
-    name: 'Achievement System',
+    name: 'Bracket Coins',
     description:
-      'Unlock badges, showcase accomplishments, and track your gaming journey.',
-    icon: ShieldCheckIcon,
+      'Purchase coins to enter premium tournaments and unlock exclusive experiences.',
+    icon: CurrencyDollarIcon,
   },
   {
-    name: 'Live Results',
+    name: 'Creator Tournaments',
     description:
-      'Real-time tournament updates and automatic result verification.',
-    icon: ClockIcon,
+      'Compete in unique tournament formats designed by your favorite content creators.',
+    icon: TrophyIcon,
+  },
+  {
+    name: 'Premium Experiences',
+    description:
+      'Win 1-on-1 coaching sessions, Discord access, and personalized content from creators.',
+    icon: SparklesIcon,
+  },
+  {
+    name: 'Amazing Prizes',
+    description:
+      'Earn coin rewards, cash prizes, merchandise, and exclusive creator collaborations.',
+    icon: GiftIcon,
+  },
+  {
+    name: 'Easy Registration',
+    description:
+      'Quick sign-up process with game account verification for fair competition.',
+    icon: UserPlusIcon,
   },
 ];
 
