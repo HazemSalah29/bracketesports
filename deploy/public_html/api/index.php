@@ -20,57 +20,42 @@ switch ($path) {
             'status' => 'OK',
             'message' => 'BracketEsports API is running',
             'timestamp' => date('c'),
-            'version' => '1.0.0'
+            'version' => '1.0.0',
+            'server' => 'GoDaddy PHP'
         ]);
         break;
         
     case 'users':
-        // Mock users data for demonstration
+        // Simulate users data (replace with actual MongoDB query)
         echo json_encode([
             'success' => true,
             'data' => [
                 [
-                    'id' => 1,
-                    'username' => 'pro_gamer',
-                    'email' => 'pro@example.com',
-                    'coins' => 1500,
-                    'level' => 25
-                ],
-                [
-                    'id' => 2,
-                    'username' => 'esports_champ',
-                    'email' => 'champ@example.com', 
-                    'coins' => 2300,
-                    'level' => 42
+                    'id' => '1',
+                    'username' => 'demo_user',
+                    'email' => 'demo@bracketesports.com',
+                    'joinDate' => date('c')
                 ]
             ],
-            'count' => 2
+            'message' => 'Users retrieved successfully'
         ]);
         break;
         
     case 'tournaments':
-        // Mock tournaments data
+        // Simulate tournaments data
         echo json_encode([
             'success' => true,
             'data' => [
                 [
-                    'id' => 1,
-                    'name' => 'League of Legends Championship',
+                    'id' => '1',
+                    'name' => 'Demo Tournament',
                     'game' => 'League of Legends',
-                    'status' => 'active',
-                    'participants' => 128,
-                    'prize' => '$10,000'
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Valorant Masters',
-                    'game' => 'Valorant', 
                     'status' => 'upcoming',
-                    'participants' => 64,
-                    'prize' => '$5,000'
+                    'participants' => 32,
+                    'prizePool' => 1000
                 ]
             ],
-            'count' => 2
+            'message' => 'Tournaments retrieved successfully'
         ]);
         break;
         
@@ -79,7 +64,8 @@ switch ($path) {
         echo json_encode([
             'error' => 'Not Found',
             'message' => 'API endpoint not found',
-            'path' => $path
+            'path' => $path,
+            'available_endpoints' => ['health', 'users', 'tournaments']
         ]);
         break;
 }

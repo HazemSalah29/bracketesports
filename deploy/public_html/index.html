@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BracketEsports - Premier Esports Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header { 
+            background: rgba(0, 0, 0, 0.8); 
+            padding: 1rem 2rem; 
+            border-bottom: 2px solid #007bff;
+        }
+        .header h1 { 
+            color: #007bff; 
+            font-size: 2rem; 
+            font-weight: bold;
+        }
+        .main { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center; 
+            padding: 2rem;
+        }
+        .hero h2 { 
+            font-size: 3rem; 
+            margin-bottom: 1rem; 
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p { 
+            font-size: 1.2rem; 
+            margin-bottom: 2rem; 
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        .features { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 2rem; 
+            margin: 3rem 0; 
+            max-width: 1000px;
+        }
+        .feature { 
+            background: rgba(255, 255, 255, 0.1); 
+            padding: 2rem; 
+            border-radius: 10px; 
+            border: 1px solid rgba(0, 123, 255, 0.3);
+            transition: transform 0.3s ease;
+        }
+        .feature:hover { 
+            transform: translateY(-5px); 
+            border-color: #007bff;
+        }
+        .feature h3 { 
+            color: #00d4ff; 
+            margin-bottom: 1rem; 
+        }
+        .status { 
+            background: rgba(0, 123, 255, 0.2); 
+            padding: 1rem; 
+            border-radius: 5px; 
+            margin: 2rem 0;
+            border-left: 4px solid #007bff;
+        }
+        .footer { 
+            background: rgba(0, 0, 0, 0.8); 
+            padding: 1rem; 
+            text-align: center; 
+            border-top: 1px solid #333;
+        }
+        .api-test { 
+            margin: 2rem 0; 
+            padding: 1rem; 
+            background: rgba(0, 0, 0, 0.5); 
+            border-radius: 5px;
+        }
+        .api-test button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 0.5rem 1rem; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 0.5rem;
+        }
+        .api-test button:hover { 
+            background: #0056b3; 
+        }
+        #apiResult { 
+            margin-top: 1rem; 
+            padding: 1rem; 
+            background: rgba(0, 0, 0, 0.7); 
+            border-radius: 5px; 
+            white-space: pre-wrap; 
+            text-align: left;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🏆 BracketEsports</h1>
+    </header>
+    
+    <main class="main">
+        <div class="hero">
+            <h2>Welcome to BracketEsports</h2>
+            <p>The premier platform for competitive esports tournaments, player rankings, and community engagement. Join thousands of players in epic battles across multiple games.</p>
+        </div>
+        
+        <div class="status">
+            <h3>🚀 Platform Status: Online</h3>
+            <p>API Server: Running | Database: Connected | Deployment: GoDaddy Hosting</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🎮 Tournament Management</h3>
+                <p>Create and join tournaments across multiple esports titles including League of Legends, Valorant, and more.</p>
+            </div>
+            <div class="feature">
+                <h3>📊 Player Analytics</h3>
+                <p>Track your performance, climb leaderboards, and analyze your gameplay statistics.</p>
+            </div>
+            <div class="feature">
+                <h3>👥 Team Building</h3>
+                <p>Find teammates, create teams, and compete together in organized competitions.</p>
+            </div>
+            <div class="feature">
+                <h3>💰 Prize Pools</h3>
+                <p>Compete for real prizes in sponsored tournaments and community events.</p>
+            </div>
+        </div>
+        
+        <div class="api-test">
+            <h3>🔧 API Test Center</h3>
+            <p>Test the BracketEsports API endpoints:</p>
+            <button onclick="testAPI('health')">Health Check</button>
+            <button onclick="testAPI('users')">Users API</button>
+            <button onclick="testAPI('tournaments')">Tournaments API</button>
+            <div id="apiResult"></div>
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <p>&copy; 2024 BracketEsports. All rights reserved. | Powered by GoDaddy Hosting</p>
+    </footer>
+    
+    <script>
+        async function testAPI(endpoint) {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.textContent = 'Testing API...';
+            
+            try {
+                const response = await fetch(`/api/index.php?path=${endpoint}`);
+                const data = await response.json();
+                resultDiv.textContent = `✅ ${endpoint.toUpperCase()} API Response:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `❌ Error testing ${endpoint} API:\n${error.message}`;
+            }
+        }
+        
+        // Auto-test health endpoint on load
+        window.addEventListener('load', () => {
+            setTimeout(() => testAPI('health'), 1000);
+        });
+    </script>
+</body>
+</html>
