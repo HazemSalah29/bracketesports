@@ -66,7 +66,7 @@ export async function POST(
       }
     }
 
-    if (now > tournament.endDate) {
+    if (tournament.endDate && now > tournament.endDate) {
       return ApiResponse.error('Tournament has ended', 400)
     }
 

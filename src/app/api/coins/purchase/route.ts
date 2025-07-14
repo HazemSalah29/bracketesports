@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { COIN_PACKAGES } from '@/constants/creator-program'
-import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-06-30.basil'
-})
+// Initialize Stripe conditionally
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not configured')
+  }
+  
+  const Stripe = require('stripe')
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-06-30.basil'
+  })
+}
 
 // Simple auth check - you can replace this with your auth system
 async function getCurrentUser() {
@@ -23,6 +30,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe is configured
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ 
+        error: 'Payment processing is not configured' 
+      }, { status: 500 })
+    }
+
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -34,6 +48,9 @@ export async function POST(request: NextRequest) {
     if (!coinPackage) {
       return NextResponse.json({ error: 'Invalid package' }, { status: 400 })
     }
+
+    // Get Stripe instance
+    const stripe = getStripe()
 
     // Create Stripe payment intent
     const paymentIntent = await stripe.paymentIntents.create({

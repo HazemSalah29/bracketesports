@@ -7,18 +7,15 @@ const createTournamentSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
   game: z.string(),
-  format: z.enum(['SINGLE_ELIMINATION', 'DOUBLE_ELIMINATION', 'ROUND_ROBIN', 'SWISS']),
   maxParticipants: z.number().int().min(2).max(1000),
-  teamSize: z.number().int().min(1).max(10),
-  registrationStart: z.string().datetime(),
-  registrationEnd: z.string().datetime(),
+  teamSize: z.number().int().min(1).max(10).optional(),
+  tournamentType: z.string().default('solo'),
+  registrationDeadline: z.string().datetime(),
   startDate: z.string().datetime(),
   endDate: z.string().datetime().optional(),
   rules: z.string().optional(),
-  pointsReward: z.number().int().min(0),
-  bannerImage: z.string().url().optional(),
+  pointsReward: z.number().int().min(0).default(100),
   isPrivate: z.boolean().optional().default(false),
-  inviteCode: z.string().optional(),
 })
 
 // GET /api/tournaments - List tournaments with filtering and pagination
@@ -120,7 +117,7 @@ export async function GET(request: NextRequest) {
       registrationDeadline: tournament.registrationDeadline,
       startDate: tournament.startDate,
       endDate: tournament.endDate,
-      status: getTournamentStatus(tournament),
+      status: tournament.status,
       pointsReward: tournament.pointsReward,
       isPrivate: tournament.isPrivate,
       isCreatorTournament: tournament.isCreatorTournament,
@@ -168,17 +165,12 @@ export async function POST(request: NextRequest) {
     const data = validation.data
 
     // Validate dates
-    const registrationStart = new Date(data.registrationStart)
-    const registrationEnd = new Date(data.registrationEnd)
+    const registrationDeadline = new Date(data.registrationDeadline)
     const startDate = new Date(data.startDate)
     const endDate = data.endDate ? new Date(data.endDate) : null
 
-    if (registrationEnd <= registrationStart) {
-      return ApiResponse.error('Registration end must be after registration start', 400)
-    }
-
-    if (startDate <= registrationEnd) {
-      return ApiResponse.error('Tournament start must be after registration end', 400)
+    if (startDate <= registrationDeadline) {
+      return ApiResponse.error('Tournament start must be after registration deadline', 400)
     }
 
     if (endDate && endDate <= startDate) {
@@ -187,19 +179,26 @@ export async function POST(request: NextRequest) {
 
     const tournament = await prisma.tournament.create({
       data: {
-        ...data,
-        organizerId: user.id,
-        registrationStart,
-        registrationEnd,
+        name: data.name,
+        description: data.description || '',
+        game: data.game,
+        maxParticipants: data.maxParticipants,
+        teamSize: data.teamSize,
+        tournamentType: data.tournamentType,
+        registrationDeadline,
         startDate,
-        endDate: endDate || undefined,
+        endDate,
+        rules: data.rules,
+        pointsReward: data.pointsReward,
+        isPrivate: data.isPrivate,
+        creatorId: user.id,
       },
       include: {
-        organizer: {
+        creator: {
           select: {
             id: true,
-            username: true,
-            avatar: true
+            handle: true,
+            tier: true
           }
         }
       }
@@ -210,19 +209,17 @@ export async function POST(request: NextRequest) {
       name: tournament.name,
       description: tournament.description,
       game: tournament.game,
-      format: tournament.format,
+      tournamentType: tournament.tournamentType,
       maxParticipants: tournament.maxParticipants,
       teamSize: tournament.teamSize,
-      currentParticipants: 0,
-      registrationStart: tournament.registrationStart,
-      registrationEnd: tournament.registrationEnd,
+      currentParticipants: tournament.currentParticipants,
+      registrationDeadline: tournament.registrationDeadline,
       startDate: tournament.startDate,
       endDate: tournament.endDate,
-      status: getTournamentStatus(tournament),
+      status: tournament.status,
       pointsReward: tournament.pointsReward,
-      bannerImage: tournament.bannerImage,
       isPrivate: tournament.isPrivate,
-      organizer: tournament.organizer,
+      creator: tournament.creator,
       createdAt: tournament.createdAt
     }
 
@@ -230,22 +227,5 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     return handleApiError(error, 'create tournament')
-  }
-}
-
-// Helper function to determine tournament status
-function getTournamentStatus(tournament: any): string {
-  const now = new Date()
-  
-  if (tournament.registrationStart > now) {
-    return 'upcoming'
-  } else if (tournament.registrationEnd > now) {
-    return 'registration'
-  } else if (tournament.startDate > now) {
-    return 'waiting'
-  } else if (!tournament.endDate || tournament.endDate > now) {
-    return 'active'
-  } else {
-    return 'completed'
   }
 }

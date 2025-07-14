@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { ApiResponse, authenticate, handleApiError, parseJsonBody } from '@/lib/api-utils'
 import { prisma } from '@/lib/prisma'
-import { riotAPI } from '@/lib/riot-api'
 
 const addGamingAccountSchema = z.object({
   platform: z.string(),
@@ -93,41 +92,57 @@ export async function POST(request: NextRequest) {
       console.log('🔧 Attempting Riot API verification for:', { gameName, tagLine, game })
       
       try {
-        // Check if account exists in Riot API
-        const riotAccount = await riotAPI.getAccountByRiotId(gameName, tagLine)
-        console.log('🔧 Riot account found:', riotAccount)
-        
-        // Check if this Riot account is already linked to another user
-        const existingRiotAccount = await prisma.gamingAccount.findFirst({
-          where: {
+        // Check if Riot API is available
+        if (!process.env.RIOT_API_KEY) {
+          console.warn('🔧 RIOT_API_KEY not configured, skipping automatic verification')
+          // Still create the account, but unverified
+          accountData = {
+            userId: user.id,
             platform: 'riot',
-            platformId: riotAccount.puuid
+            username: `${gameName}#${tagLine}`,
+            platformId: `riot_${gameName}_${tagLine}`,
+            verified: false
           }
-        })
+        } else {
+          // Dynamic import to avoid build-time initialization
+          const { riotAPI } = await import('@/lib/riot-api')
+          
+          // Check if account exists in Riot API
+          const riotAccount = await riotAPI.getAccountByRiotId(gameName, tagLine)
+          console.log('🔧 Riot account found:', riotAccount)
+          
+          // Check if this Riot account is already linked to another user
+          const existingRiotAccount = await prisma.gamingAccount.findFirst({
+            where: {
+              platform: 'riot',
+              platformId: riotAccount.puuid
+            }
+          })
 
-        if (existingRiotAccount && existingRiotAccount.userId !== user.id) {
-          console.log('🔧 Account already linked to another user')
-          return ApiResponse.error('This Riot account is already linked to another user', 409)
-        }
+          if (existingRiotAccount && existingRiotAccount.userId !== user.id) {
+            console.log('🔧 Account already linked to another user')
+            return ApiResponse.error('This Riot account is already linked to another user', 409)
+          }
 
-        // Get additional account data
-        let rank = null
-        
-        try {
-          console.log('🔧 Fetching rank data...')
-          rank = await riotAPI.getPlayerCurrentRank(riotAccount.puuid, game || 'VALORANT')
-          console.log('🔧 Rank data:', rank)
-        } catch (error) {
-          console.warn('🔧 Could not fetch rank:', error)
-        }
+          // Get additional account data
+          let rank = null
+          
+          try {
+            console.log('🔧 Fetching rank data...')
+            rank = await riotAPI.getPlayerCurrentRank(riotAccount.puuid, game || 'VALORANT')
+            console.log('🔧 Rank data:', rank)
+          } catch (error) {
+            console.warn('🔧 Could not fetch rank:', error)
+          }
 
-        // Account exists and is not linked to someone else - auto-verify
-        accountData = {
-          userId: user.id,
-          platform: 'riot', // Use 'riot' as the unified platform
-          username: `${gameName}#${tagLine}`,
-          platformId: riotAccount.puuid,
-          verified: true
+          // Account exists and is not linked to someone else - auto-verify
+          accountData = {
+            userId: user.id,
+            platform: 'riot', // Use 'riot' as the unified platform
+            username: `${gameName}#${tagLine}`,
+            platformId: riotAccount.puuid,
+            verified: true
+          }
         }
 
       } catch (error: any) {

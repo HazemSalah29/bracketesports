@@ -1,10 +1,17 @@
 import { NextRequest } from 'next/server'
-import { riotAPI } from '@/lib/riot-api'
 import { ApiResponse } from '@/lib/api-utils'
 
 // GET /api/test/riot - Test Riot API connection
 export async function GET(request: NextRequest) {
   try {
+    // Check if RIOT_API_KEY is available
+    if (!process.env.RIOT_API_KEY) {
+      return ApiResponse.error('RIOT_API_KEY environment variable is not configured', 500)
+    }
+
+    // Dynamically import riot API to avoid initialization during build
+    const { riotAPI } = await import('@/lib/riot-api')
+    
     // Get test parameters from URL
     const { searchParams } = new URL(request.url)
     const gameName = searchParams.get('gameName') || 'TTV RyanCentral'

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { riotAPI } from '@/lib/riot-api'
 import { ApiResponse, handleApiError, authenticate, parseJsonBody } from '@/lib/api-utils'
 
 const createLobbySchema = z.object({
@@ -61,6 +60,14 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+      // Check if Riot API is configured
+      if (!process.env.RIOT_API_KEY) {
+        return ApiResponse.error('Custom game lobby creation requires Riot API configuration', 500)
+      }
+
+      // Dynamic import to avoid build-time initialization
+      const { riotAPI } = await import('@/lib/riot-api')
+
       // Create custom game lobby via Riot API
       let lobbyData
       if (gameMode === 'VALORANT') {

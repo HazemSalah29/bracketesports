@@ -10,7 +10,7 @@ async function getCurrentUser() {
     email: 'creator@example.com',
     creator: {
       id: 'creator_123',
-      tier: 'PARTNER',
+      tier: 'PARTNER' as const,
       status: 'APPROVED',
       totalEarnings: 2450.75,
       revenueShare: 70

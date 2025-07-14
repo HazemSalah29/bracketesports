@@ -161,10 +161,10 @@ async function getUserAnalytics(userId: string, startDate: Date) {
     pointsHistory
   ] = await Promise.all([
     // User's tournaments
-    prisma.tournamentParticipation.findMany({
+    prisma.tournamentParticipant.findMany({
       where: {
         userId,
-        createdAt: { gte: startDate }
+        joinedAt: { gte: startDate }
       },
       include: {
         tournament: {
@@ -178,10 +178,9 @@ async function getUserAnalytics(userId: string, startDate: Date) {
     }),
     
     // User's teams
-    prisma.teamMembership.count({
+    prisma.teamMember.count({
       where: {
-        userId,
-        status: 'ACTIVE'
+        userId
       }
     }),
     
@@ -194,20 +193,33 @@ async function getUserAnalytics(userId: string, startDate: Date) {
     }),
     
     // Recent matches/games
-    prisma.match.findMany({
+    prisma.playerMatchStats.findMany({
       where: {
-        OR: [
-          { player1Id: userId },
-          { player2Id: userId }
-        ],
-        createdAt: { gte: startDate }
+        userId,
+        match: {
+          createdAt: { gte: startDate }
+        }
       },
       take: 10,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { 
+        match: {
+          createdAt: 'desc'
+        }
+      },
+      include: {
+        match: {
+          select: {
+            id: true,
+            gameMode: true,
+            status: true,
+            createdAt: true
+          }
+        }
+      }
     }),
     
     // Points history (simplified)
-    prisma.tournamentParticipation.findMany({
+    prisma.tournamentParticipant.findMany({
       where: {
         userId,
         tournament: {

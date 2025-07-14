@@ -133,8 +133,8 @@ export async function PUT(
       return ApiResponse.notFound('Tournament not found')
     }
 
-    if (tournament.organizerId !== user.id) {
-      return ApiResponse.forbidden('Only organizer can update tournament')
+    if (tournament.creatorId !== user.id) {
+      return ApiResponse.forbidden('Only creator can update tournament')
     }
 
     const updateSchema = z.object({
@@ -171,11 +171,11 @@ export async function PUT(
       where: { id: params.id },
       data: updateData,
       include: {
-        organizer: {
+        creator: {
           select: {
             id: true,
-            username: true,
-            avatar: true
+            handle: true,
+            tier: true
           }
         }
       }
@@ -208,8 +208,8 @@ export async function DELETE(
       return ApiResponse.notFound('Tournament not found')
     }
 
-    if (tournament.organizerId !== user.id) {
-      return ApiResponse.forbidden('Only organizer can delete tournament')
+    if (tournament.creatorId !== user.id) {
+      return ApiResponse.forbidden('Only creator can delete tournament')
     }
 
     // Check if tournament has started
