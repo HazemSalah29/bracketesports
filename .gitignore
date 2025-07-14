@@ -4,7 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Production builds
+# Next.js
+.next/
+out/
 build/
 dist/
 
@@ -24,30 +26,20 @@ dist/
 
 # OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # Logs
-logs
 *.log
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Database
+*.db
+*.sqlite
 
-# Coverage directory used by tools like istanbul
-coverage/
+# TypeScript
+*.tsbuildinfo
 
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
+# Vercel
+.vercel
 .npm
 
 # Optional eslint cache
