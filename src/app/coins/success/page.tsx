@@ -17,8 +17,10 @@ export default function CoinPurchaseSuccessPage() {
 
   const fetchCoinBalance = async () => {
     try {
-      const data = await apiClient.getCoinBalance()
-      setCoinBalance(data.balance)
+      const response = await apiClient.getCoinBalance()
+      if (response.success && response.data) {
+        setCoinBalance((response.data as any).balance || 0)
+      }
     } catch (error) {
       console.error('Failed to fetch coin balance:', error)
     }

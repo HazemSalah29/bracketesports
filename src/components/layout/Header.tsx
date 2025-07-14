@@ -1,48 +1,50 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useAuth } from '@/contexts/AuthContext'
-import { t } from '@/lib/translations'
-import { KEYS } from '@/constants/keys'
-import { apiClient } from '@/lib/api-client'
-import { 
-  Bars3Icon, 
-  XMarkIcon, 
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
+import { t } from '@/lib/translations';
+import { KEYS } from '@/constants/keys';
+import { apiClient } from '@/lib/api-client';
+import {
+  Bars3Icon,
+  XMarkIcon,
   UserIcon,
   ChevronDownIcon,
   ArrowRightOnRectangleIcon,
   CurrencyDollarIcon,
-  StarIcon
-} from '@heroicons/react/24/outline'
+  StarIcon,
+} from '@heroicons/react/24/outline';
 
 export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [coinBalance, setCoinBalance] = useState(0)
-  const { user, isAuthenticated, logout } = useAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [coinBalance, setCoinBalance] = useState(0);
+  const { user, isAuthenticated, logout } = useAuth();
 
   // Fetch coin balance when user is authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      fetchCoinBalance()
+      fetchCoinBalance();
     }
-  }, [isAuthenticated, user])
+  }, [isAuthenticated, user]);
 
   const fetchCoinBalance = async () => {
     try {
-      const data = await apiClient.getCoinBalance()
-      setCoinBalance(data.balance)
+      const response = await apiClient.getCoinBalance();
+      if (response.success && response.data) {
+        setCoinBalance((response.data as any).balance || 0);
+      }
     } catch (error) {
-      console.error('Failed to fetch coin balance:', error)
+      console.error('Failed to fetch coin balance:', error);
     }
-  }
+  };
 
   const handleLogout = () => {
-    logout()
-    setUserMenuOpen(false)
-  }
+    logout();
+    setUserMenuOpen(false);
+  };
 
   // Navigation items for authenticated users
   const authenticatedNavItems = [
@@ -50,16 +52,16 @@ export default function Header() {
     { name: t(KEYS.NAV.TOURNAMENTS), href: '/tournaments' },
     { name: t(KEYS.NAV.LEADERBOARD), href: '/leaderboard' },
     { name: t(KEYS.NAV.TEAMS), href: '/teams' },
-  ]
+  ];
 
   // Navigation items for unauthenticated users
   const publicNavItems = [
     { name: 'How It Works', href: '/how-it-works' },
     { name: t(KEYS.NAV.TOURNAMENTS), href: '/tournaments' },
     { name: t(KEYS.NAV.LEADERBOARD), href: '/leaderboard' },
-  ]
+  ];
 
-  const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems
+  const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems;
 
   return (
     <header className="bg-slate-900 border-b border-slate-800">
@@ -119,8 +121,8 @@ export default function Header() {
                   >
                     <div className="w-8 h-8 bg-gaming-500 rounded-full flex items-center justify-center">
                       {user.avatar ? (
-                        <Image 
-                          src={user.avatar} 
+                        <Image
+                          src={user.avatar}
                           alt={user.username}
                           width={32}
                           height={32}
@@ -213,7 +215,7 @@ export default function Header() {
                   {item.name}
                 </Link>
               ))}
-              
+
               {isAuthenticated && user ? (
                 <>
                   <hr className="my-3 border-slate-700" />
@@ -221,8 +223,8 @@ export default function Header() {
                     <div className="flex items-center space-x-3 mb-3">
                       <div className="w-10 h-10 bg-gaming-500 rounded-full flex items-center justify-center">
                         {user.avatar ? (
-                          <Image 
-                            src={user.avatar} 
+                          <Image
+                            src={user.avatar}
                             alt={user.username}
                             width={40}
                             height={40}
@@ -233,7 +235,9 @@ export default function Header() {
                         )}
                       </div>
                       <div>
-                        <div className="text-white font-medium">{user.username}</div>
+                        <div className="text-white font-medium">
+                          {user.username}
+                        </div>
                         <div className="flex items-center space-x-2 mt-1">
                           <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-600 to-amber-500 px-2 py-1 rounded">
                             <CurrencyDollarIcon className="w-3 h-3 text-white" />
@@ -269,8 +273,8 @@ export default function Header() {
                   </Link>
                   <button
                     onClick={() => {
-                      handleLogout()
-                      setMobileMenuOpen(false)
+                      handleLogout();
+                      setMobileMenuOpen(false);
                     }}
                     className="w-full text-left px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md"
                   >
@@ -302,12 +306,12 @@ export default function Header() {
 
         {/* Click outside to close dropdowns */}
         {userMenuOpen && (
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setUserMenuOpen(false)}
           />
         )}
       </div>
     </header>
-  )
+  );
 }

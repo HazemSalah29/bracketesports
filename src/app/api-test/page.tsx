@@ -1,54 +1,60 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { apiClient } from '@/lib/api-client'
+import { useState } from 'react';
+import { apiClient } from '@/lib/api-client';
 
 export default function ApiTestPage() {
-  const [testResult, setTestResult] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
+  const [testResult, setTestResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   const testBasicAPI = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch('/api/test/basic')
-      const data = await response.json()
-      setTestResult({ type: 'Basic API Test', success: true, data })
+      const response = await fetch('/api/test/basic');
+      const data = await response.json();
+      setTestResult({ type: 'Basic API Test', success: true, data });
     } catch (error: any) {
-      setTestResult({ type: 'Basic API Test', success: false, error: error.message })
+      setTestResult({
+        type: 'Basic API Test',
+        success: false,
+        error: error.message,
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const testAuthAPI = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch('/api/test/auth')
-      const data = await response.json()
-      setTestResult({ type: 'Auth API Test', success: true, data })
+      const response = await fetch('/api/test/auth');
+      const data = await response.json();
+      setTestResult({ type: 'Auth API Test', success: true, data });
     } catch (error: any) {
-      setTestResult({ type: 'Auth API Test', success: false, error: error.message })
+      setTestResult({
+        type: 'Auth API Test',
+        success: false,
+        error: error.message,
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const testApiClient = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       // Test the API client directly
-      const response = await apiClient.addGamingAccount({
+      const response = await apiClient.user.addGamingAccount({
         platform: 'valorant',
-        gameName: 'TestUser',
-        tagLine: '123',
         username: 'TestUser#123',
-        game: 'VALORANT'
-      })
-      setTestResult({ type: 'API Client Test', success: true, data: response })
+        platformId: 'TestUser123',
+      });
+      setTestResult({ type: 'API Client Test', success: true, data: response });
     } catch (error: any) {
-      setTestResult({ 
-        type: 'API Client Test', 
-        success: false, 
+      setTestResult({
+        type: 'API Client Test',
+        success: false,
         error: error.message,
         fullError: {
           name: error.name,
@@ -56,18 +62,18 @@ export default function ApiTestPage() {
           response: error.response,
           status: error.status,
           originalError: error.originalError,
-          stack: error.stack
-        }
-      })
+          stack: error.stack,
+        },
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6">API Test Page</h1>
-      
+
       <div className="space-y-4">
         <button
           onClick={testBasicAPI}
@@ -76,7 +82,7 @@ export default function ApiTestPage() {
         >
           Test Basic API
         </button>
-        
+
         <button
           onClick={testAuthAPI}
           disabled={loading}
@@ -84,7 +90,7 @@ export default function ApiTestPage() {
         >
           Test Auth API
         </button>
-        
+
         <button
           onClick={testApiClient}
           disabled={loading}
@@ -93,9 +99,9 @@ export default function ApiTestPage() {
           Test API Client (Gaming Account)
         </button>
       </div>
-      
+
       {loading && <p className="mt-4">Loading...</p>}
-      
+
       {testResult && (
         <div className="mt-6 p-4 border rounded">
           <h3 className="font-bold">{testResult.type} Result:</h3>
@@ -105,5 +111,5 @@ export default function ApiTestPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
