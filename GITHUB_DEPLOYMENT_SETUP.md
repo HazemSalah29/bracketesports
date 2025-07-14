@@ -222,7 +222,9 @@ For deployment issues:
 ## 🚨 FTP Deployment Error - Quick Fix Guide
 
 ### The Problem
+
 Your GitHub Actions deployment is failing with:
+
 ```
 Error: getaddrinfo ENOTFOUND ***
 Failed to connect, are you sure your server works via FTP or FTPS?
@@ -235,16 +237,20 @@ This means the FTP server address cannot be found, indicating missing or incorre
 I've created a ready-to-deploy package in the `deploy/` folder:
 
 📁 **Deployment Package Created:**
+
 - `deploy/public_html/index.html` - Beautiful landing page with API testing
 - `deploy/public_html/api/index.php` - PHP-based API (GoDaddy compatible)
 - `deploy/public_html/.htaccess` - Server configuration
 
 **🔧 Upload Instructions:**
+
 1. **Access GoDaddy File Manager:**
+
    - Login to GoDaddy → My Products → Web Hosting → Manage
    - Open File Manager or cPanel
 
 2. **Upload Files:**
+
    - Navigate to `public_html/` folder
    - Upload ALL contents from `deploy/public_html/` to your `public_html/`
    - Make sure to upload:
