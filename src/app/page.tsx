@@ -30,6 +30,12 @@ export default function Home() {
   const [coinBalance, setCoinBalance] = useState(0);
 
   const filterTournaments = useCallback(() => {
+    // Ensure tournaments is an array before filtering
+    if (!Array.isArray(tournaments)) {
+      setFilteredTournaments([]);
+      return;
+    }
+    
     let filtered = tournaments;
 
     // Filter by search term
@@ -70,9 +76,12 @@ export default function Home() {
       const response = await apiClient.getCoinBalance();
       if (response.success && response.data) {
         setCoinBalance((response.data as any).balance || 0);
+      } else {
+        setCoinBalance(0);
       }
     } catch (error) {
       console.error('Failed to fetch coin balance:', error);
+      setCoinBalance(0);
     }
   };
 
@@ -85,16 +94,27 @@ export default function Home() {
     try {
       const response = await apiClient.getTournaments();
       if (response.success && response.data) {
-        setTournaments(response.data as any);
+        // Ensure we always set an array
+        const tournamentsData = Array.isArray(response.data) ? response.data : [];
+        setTournaments(tournamentsData);
+      } else {
+        // Set empty array if response fails
+        setTournaments([]);
       }
     } catch (error) {
       console.error('Failed to fetch tournaments:', error);
+      // Set empty array on error
+      setTournaments([]);
     } finally {
       setLoadingTournaments(false);
     }
   };
 
   const getUniqueGames = () => {
+    // Ensure tournaments is an array before mapping
+    if (!Array.isArray(tournaments)) {
+      return [];
+    }
     const games = tournaments.map((t) => t.game);
     return Array.from(new Set(games));
   };
@@ -222,7 +242,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          ) : filteredTournaments.length > 0 ? (
+          ) : Array.isArray(filteredTournaments) && filteredTournaments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredTournaments.map((tournament) => (
                 <TournamentCard key={tournament.id} tournament={tournament} />
