@@ -10,12 +10,15 @@ export default function ApiTestPage() {
   const testBasicAPI = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/test/basic');
-      const data = await response.json();
-      setTestResult({ type: 'Basic API Test', success: true, data });
+      const response = await apiClient.tournament.getAll();
+      setTestResult({
+        type: 'Tournament API Test',
+        success: response.success,
+        data: response.data,
+      });
     } catch (error: any) {
       setTestResult({
-        type: 'Basic API Test',
+        type: 'Tournament API Test',
         success: false,
         error: error.message,
       });

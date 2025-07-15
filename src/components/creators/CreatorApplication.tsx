@@ -1,7 +1,8 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { CREATOR_TIERS } from '@/constants/creator-program'
+import { useState } from 'react';
+import { apiClient } from '@/lib/api-client';
+import { CREATOR_TIERS } from '@/constants/creator-program';
 
 export default function CreatorApplication() {
   const [formData, setFormData] = useState({
@@ -10,62 +11,58 @@ export default function CreatorApplication() {
     youtubeUrl: '',
     tiktokUrl: '',
     discordUrl: '',
-    followerCount: ''
-  })
-  const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+    followerCount: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const response = await fetch('/api/creators/apply', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          followerCount: parseInt(formData.followerCount)
-        }),
-      })
+      const response = await apiClient.creator.apply({
+        organizationName: formData.handle,
+        experience: `${formData.followerCount} followers`,
+        references: `Twitch: ${formData.twitchUrl}, YouTube: ${formData.youtubeUrl}, TikTok: ${formData.tiktokUrl}`,
+        motivation: `Discord: ${formData.discordUrl}`,
+      });
 
-      const data = await response.json()
-
-      if (data.success) {
-        setSubmitted(true)
-        alert('Application submitted successfully!')
+      if (response.success) {
+        setSubmitted(true);
+        alert('Application submitted successfully!');
       } else {
-        alert('Application failed: ' + data.error)
+        alert('Application failed: ' + response.error);
       }
     } catch (error) {
-      console.error('Application error:', error)
-      alert('Application failed. Please try again.')
+      console.error('Application error:', error);
+      alert('Application failed. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const getEstimatedTier = () => {
-    const followers = parseInt(formData.followerCount)
-    if (!followers) return null
-    
-    if (followers >= 1000000) return 'ELITE'
-    if (followers >= 250000) return 'PARTNER'
-    if (followers >= 50000) return 'RISING'
-    if (followers >= 10000) return 'EMERGING'
-    return null
-  }
+    const followers = parseInt(formData.followerCount);
+    if (!followers) return null;
 
-  const estimatedTier = getEstimatedTier()
+    if (followers >= 1000000) return 'ELITE';
+    if (followers >= 250000) return 'PARTNER';
+    if (followers >= 50000) return 'RISING';
+    if (followers >= 10000) return 'EMERGING';
+    return null;
+  };
+
+  const estimatedTier = getEstimatedTier();
 
   if (submitted) {
     return (
@@ -77,11 +74,12 @@ export default function CreatorApplication() {
               Application Submitted!
             </h1>
             <p className="text-slate-300 mb-6">
-              Thank you for applying to the Bracket Esports Creator Program. 
-              We will review your application within 3-5 business days and get back to you via email.
+              Thank you for applying to the Bracket Esports Creator Program. We
+              will review your application within 3-5 business days and get back
+              to you via email.
             </p>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = '/')}
               className="bg-gaming-600 hover:bg-gaming-500 text-white px-6 py-3 rounded-lg transition-colors"
             >
               Return to Home
@@ -89,7 +87,7 @@ export default function CreatorApplication() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -101,7 +99,8 @@ export default function CreatorApplication() {
             Creator Program Application
           </h1>
           <p className="text-xl text-slate-300">
-            Join the Bracket Esports Creator Program and monetize your gaming community
+            Join the Bracket Esports Creator Program and monetize your gaming
+            community
           </p>
         </div>
 
@@ -143,8 +142,19 @@ export default function CreatorApplication() {
                   />
                   {estimatedTier && (
                     <p className="mt-2 text-sm text-gaming-400">
-                      Estimated Tier: {CREATOR_TIERS[estimatedTier as keyof typeof CREATOR_TIERS].name} 
-                      ({CREATOR_TIERS[estimatedTier as keyof typeof CREATOR_TIERS].revenueShare}% revenue share)
+                      Estimated Tier:{' '}
+                      {
+                        CREATOR_TIERS[
+                          estimatedTier as keyof typeof CREATOR_TIERS
+                        ].name
+                      }
+                      (
+                      {
+                        CREATOR_TIERS[
+                          estimatedTier as keyof typeof CREATOR_TIERS
+                        ].revenueShare
+                      }
+                      % revenue share)
                     </p>
                   )}
                 </div>
@@ -230,14 +240,16 @@ export default function CreatorApplication() {
           {/* Creator Tiers Info */}
           <div className="lg:col-span-1">
             <div className="bg-slate-800 rounded-2xl p-6">
-              <h3 className="text-xl font-bold text-white mb-6">Creator Tiers</h3>
+              <h3 className="text-xl font-bold text-white mb-6">
+                Creator Tiers
+              </h3>
               <div className="space-y-4">
                 {Object.entries(CREATOR_TIERS).map(([key, tier]) => (
-                  <div 
+                  <div
                     key={key}
                     className={`p-4 rounded-lg border ${
-                      estimatedTier === key 
-                        ? 'border-gaming-500 bg-gaming-900/20' 
+                      estimatedTier === key
+                        ? 'border-gaming-500 bg-gaming-900/20'
                         : 'border-slate-600'
                     }`}
                   >
@@ -258,7 +270,9 @@ export default function CreatorApplication() {
 
             {/* Requirements */}
             <div className="bg-slate-800 rounded-2xl p-6 mt-6">
-              <h3 className="text-lg font-bold text-white mb-4">Requirements</h3>
+              <h3 className="text-lg font-bold text-white mb-4">
+                Requirements
+              </h3>
               <ul className="space-y-2 text-sm text-slate-300">
                 <li>• 10,000+ total followers across platforms</li>
                 <li>• 70%+ gaming/esports content</li>
@@ -271,5 +285,5 @@ export default function CreatorApplication() {
         </div>
       </div>
     </div>
-  )
+  );
 }

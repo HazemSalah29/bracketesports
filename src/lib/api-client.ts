@@ -1,7 +1,7 @@
 // API Client for BracketEsports - Frontend to Backend Communication
-// Replaces Prisma direct database calls with HTTP API calls
+// Updated to use working Render backend endpoints
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = 'https://bracketesports-backend.onrender.com/api';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -62,52 +62,52 @@ export const authApi = {
     firstName?: string;
     lastName?: string;
   }) =>
-    makeRequest('/api/auth/register', {
+    makeRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
 
   login: (credentials: { email: string; password: string }) =>
-    makeRequest('/api/auth/login', {
+    makeRequest('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     }),
 
-  logout: () => makeRequest('/api/auth/logout', { method: 'POST' }),
+  logout: () => makeRequest('/auth/logout', { method: 'POST' }),
 };
 
 // User API
 export const userApi = {
-  getProfile: () => makeRequest('/api/users/me'),
+  getProfile: () => makeRequest('/users/profile'),
 
   updateProfile: (data: any) =>
-    makeRequest('/api/users/me', {
+    makeRequest('/users/profile', {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
 
-  getCoinBalance: () => makeRequest('/api/users/coins/balance'),
+  getCoinBalance: () => makeRequest('/coins/balance'),
 
   getUserActivity: (limit?: number) =>
-    makeRequest(`/api/users/activity${limit ? `?limit=${limit}` : ''}`),
+    makeRequest(`/users/activity${limit ? `?limit=${limit}` : ''}`),
 
   getLeaderboard: (limit?: number) =>
-    makeRequest(`/api/users/leaderboard${limit ? `?limit=${limit}` : ''}`),
+    makeRequest(`/users/leaderboard${limit ? `?limit=${limit}` : ''}`),
 
   addGamingAccount: (accountData: {
     platform: string;
     username: string;
     platformId: string;
   }) =>
-    makeRequest('/api/users/gaming-accounts', {
+    makeRequest('/users/gaming-accounts', {
       method: 'POST',
       body: JSON.stringify(accountData),
     }),
 
-  getGamingAccounts: () => makeRequest('/api/users/gaming-accounts'),
+  getGamingAccounts: () => makeRequest('/users/gaming-accounts'),
 
   deleteGamingAccount: (accountId: string) =>
-    makeRequest(`/api/users/gaming-accounts/${accountId}`, {
+    makeRequest(`/users/gaming-accounts/${accountId}`, {
       method: 'DELETE',
     }),
 };
@@ -121,31 +121,31 @@ export const tournamentApi = {
     game?: string;
   }) => {
     const query = params ? new URLSearchParams(params as any).toString() : '';
-    return makeRequest(`/api/tournaments${query ? `?${query}` : ''}`);
+    return makeRequest(`/tournaments${query ? `?${query}` : ''}`);
   },
 
-  getById: (id: string) => makeRequest(`/api/tournaments/${id}`),
+  getById: (id: string) => makeRequest(`/tournaments/${id}`),
 
   create: (tournamentData: any) =>
-    makeRequest('/api/tournaments', {
+    makeRequest('/tournaments', {
       method: 'POST',
       body: JSON.stringify(tournamentData),
     }),
 
   update: (id: string, data: any) =>
-    makeRequest(`/api/tournaments/${id}`, {
+    makeRequest(`/tournaments/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    makeRequest(`/api/tournaments/${id}`, { method: 'DELETE' }),
+    makeRequest(`/tournaments/${id}`, { method: 'DELETE' }),
 
   join: (id: string) =>
-    makeRequest(`/api/tournaments/${id}/join`, { method: 'POST' }),
+    makeRequest(`/tournaments/${id}/join`, { method: 'POST' }),
 
   leave: (id: string) =>
-    makeRequest(`/api/tournaments/${id}/leave`, { method: 'POST' }),
+    makeRequest(`/tournaments/${id}/leave`, { method: 'POST' }),
 };
 
 // Creator API
@@ -156,55 +156,80 @@ export const creatorApi = {
     references?: string;
     motivation: string;
   }) =>
-    makeRequest('/api/creator/apply', {
+    makeRequest('/creator/apply', {
       method: 'POST',
       body: JSON.stringify(applicationData),
     }),
 
-  getAnalytics: () => makeRequest('/api/creator/analytics'),
+  getAnalytics: () => makeRequest('/creator/analytics'),
 
-  getEarnings: () => makeRequest('/api/creator/earnings'),
+  getEarnings: () => makeRequest('/creator/earnings'),
 };
 
 // Analytics API
 export const analyticsApi = {
-  getPlatformStats: () => makeRequest('/api/analytics/platform'),
+  getPlatformStats: () => makeRequest('/analytics/platform'),
 
-  getUserAnalytics: () => makeRequest('/api/analytics/user'),
+  getUserAnalytics: () => makeRequest('/analytics/user'),
 
-  getCreatorDashboard: () => makeRequest('/api/analytics/creator-dashboard'),
+  getCreatorDashboard: () => makeRequest('/analytics/creator-dashboard'),
 
-  getTournamentStats: () => makeRequest('/api/analytics/tournaments'),
+  getTournamentStats: () => makeRequest('/analytics/tournaments'),
 };
 
 // Coins API
 export const coinsApi = {
-  getBalance: () => makeRequest('/api/users/coins/balance'),
+  getBalance: () => makeRequest('/coins/balance'),
+
+  getPackages: () => makeRequest('/coins/packages'),
+
+  getExchangeRate: () => makeRequest('/coins/exchange-rate'),
 
   purchaseCoins: (data: { packageId: string }) =>
-    makeRequest('/api/coins/purchase', {
+    makeRequest('/coins/purchase', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  getHistory: (limit?: number) =>
+    makeRequest(`/coins/history${limit ? `?limit=${limit}` : ''}`),
+
+  transferCoins: (toUserId: string, amount: number) =>
+    makeRequest('/coins/transfer', {
+      method: 'POST',
+      body: JSON.stringify({ toUserId, amount }),
     }),
 };
 
 // Teams API
 export const teamsApi = {
-  getAll: () => makeRequest('/api/teams'),
+  getAll: () => makeRequest('/teams'),
 
-  getById: (id: string) => makeRequest(`/api/teams/${id}`),
+  getById: (id: string) => makeRequest(`/teams/${id}`),
 
   create: (teamData: any) =>
-    makeRequest('/api/teams', {
+    makeRequest('/teams', {
       method: 'POST',
       body: JSON.stringify(teamData),
     }),
 
-  join: (id: string) =>
-    makeRequest(`/api/teams/${id}/join`, { method: 'POST' }),
+  join: (id: string) => makeRequest(`/teams/${id}/join`, { method: 'POST' }),
 
-  leave: (id: string) =>
-    makeRequest(`/api/teams/${id}/leave`, { method: 'POST' }),
+  leave: (id: string) => makeRequest(`/teams/${id}/leave`, { method: 'POST' }),
+};
+
+// Health API
+export const healthApi = {
+  check: () => makeRequest('/health'),
+};
+
+// Riot API
+export const riotApi = {
+  verifyAccount: (data: { username: string; tagline: string; game: string }) =>
+    makeRequest('/riot/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 // Combined API client object
@@ -216,6 +241,8 @@ export const apiClient = {
   analytics: analyticsApi,
   coins: coinsApi,
   teams: teamsApi,
+  health: healthApi,
+  riot: riotApi,
 
   // Legacy methods for backward compatibility
   login: authApi.login,

@@ -5,7 +5,7 @@ const nextConfig = {
   },
   // Enable standalone output for production deployment
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-  
+
   // Disable x-powered-by header for security
   poweredByHeader: false,
   // Enable compression

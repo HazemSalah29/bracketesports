@@ -1,12 +1,14 @@
 # BracketEsports - Local Development Setup
 
 ## Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - Docker (optional)
 
 ## Quick Start
 
 ### Option 1: Direct Node.js Development
+
 ```bash
 # Install dependencies
 npm install
@@ -19,6 +21,7 @@ npm run dev
 ```
 
 ### Option 2: Docker Development
+
 ```bash
 # Build and run with Docker Compose
 docker-compose up --build
@@ -48,6 +51,7 @@ docker run -p 3000:3000 -v ${PWD}:/app bracketesports
 ## Database Setup
 
 If using local MongoDB:
+
 1. Uncomment the MongoDB service in `docker-compose.yml`
 2. Update your `.env.local` with local connection string
 3. Run `npx prisma generate` and `npx prisma db push`
@@ -55,7 +59,7 @@ If using local MongoDB:
 ## Accessing the Application
 
 - Frontend: http://localhost:3000
-- API Routes: http://localhost:3000/api/*
+- API Routes: http://localhost:3000/api/\*
 
 ## Development Notes
 

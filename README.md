@@ -12,36 +12,42 @@ A premium esports tournament platform built with Next.js 14, TypeScript, and Tai
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
+- **Frontend**: Next.js 14 with App Router + TypeScript
+- **Backend**: Separate Node.js API (deployed on Render)
 - **Styling**: Tailwind CSS
 - **Icons**: Heroicons
 - **Animations**: Framer Motion
 - **Forms**: React Hook Form + Zod validation
-- **State Management**: Zustand
-- **Authentication**: JWT with bcrypt
+- **State Management**: Zustand + React Context
+- **Authentication**: JWT with backend integration
 - **Payments**: Stripe integration
+- **Real-time**: Socket.io
+- **Database**: MongoDB (via backend API)
 
 ## 🏃‍♂️ Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/HazemSalah29/bracketesports.git
 cd bracketesports
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.example .env.local
 ```
@@ -49,6 +55,7 @@ cp .env.example .env.local
 4. Fill in your environment variables in `.env.local`
 
 5. Run the development server:
+
 ```bash
 npm run dev
 ```

@@ -71,12 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const parsedUser = JSON.parse(userData);
           // Validate the token with the server
           try {
-            await fetch('/api/user/profile', {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            setUser(parsedUser);
+            const response = await apiClient.user.getProfile();
+            if (response.success && response.data) {
+              setUser(response.data as User);
+            } else {
+              throw new Error('Invalid token');
+            }
           } catch (error) {
             // Token is invalid, clear data
             localStorage.removeItem('auth_token');

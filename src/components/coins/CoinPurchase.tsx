@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { COIN_PACKAGES } from '@/constants/creator-program'
 import { CreditCardIcon, StarIcon } from '@heroicons/react/24/outline'
+import { apiClient } from '@/lib/api-client'
 
 interface CoinPurchaseProps {
   currentBalance?: number
@@ -17,22 +18,14 @@ export default function CoinPurchase({ currentBalance = 0 }: CoinPurchaseProps) 
     setSelectedPackage(packageId)
 
     try {
-      const response = await fetch('/api/coins/purchase', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ packageId }),
-      })
+      const response = await apiClient.coins.purchaseCoins({ packageId })
 
-      const data = await response.json()
-
-      if (data.success) {
+      if (response.success) {
         // In a real app, you'd redirect to Stripe Checkout or handle the client secret
         alert('Purchase initiated! In a real app, this would redirect to Stripe Checkout.')
-        console.log('Client Secret:', data.clientSecret)
+        console.log('Purchase response:', response.data)
       } else {
-        alert('Purchase failed: ' + data.error)
+        alert('Purchase failed: ' + response.error)
       }
     } catch (error) {
       console.error('Purchase error:', error)
