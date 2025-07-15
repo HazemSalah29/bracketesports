@@ -9,6 +9,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://bracket-esports.vercel.app'),
   title: 'Bracket Esports - Premium Tournament Platform',
   description: 'Join competitive esports tournaments, connect your gaming accounts, and compete for points and rankings.',
   keywords: 'esports, gaming, tournaments, competition, ranking, gaming platform',
