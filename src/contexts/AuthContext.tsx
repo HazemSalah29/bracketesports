@@ -127,7 +127,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData): Promise<boolean> => {
     try {
-      const response = await apiClient.register(data);
+      // Extract only the fields the backend expects
+      const registrationPayload = {
+        username: data.username,
+        email: data.email,
+        password: data.password
+      };
+
+      const response = await apiClient.register(registrationPayload);
 
       if (response.success && response.data) {
         const authData = response.data as any;

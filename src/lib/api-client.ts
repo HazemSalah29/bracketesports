@@ -14,7 +14,7 @@ interface ApiResponse<T = any> {
 const getAuthToken = () => {
   if (typeof window === 'undefined') return null;
   return (
-    localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+    localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
   );
 };
 
@@ -38,8 +38,21 @@ const makeRequest = async <T>(
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}`);
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      console.error(`API Error [${endpoint}]:`, {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        requestBody: options.body
+      });
+      
+      throw new Error(errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -59,8 +72,6 @@ export const authApi = {
     username: string;
     email: string;
     password: string;
-    firstName?: string;
-    lastName?: string;
   }) =>
     makeRequest('/auth/register', {
       method: 'POST',
