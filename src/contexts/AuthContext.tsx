@@ -50,6 +50,8 @@ interface RegisterData {
   email: string;
   password: string;
   confirmPassword: string;
+  firstName: string;
+  lastName: string;
   gameId?: string;
   gameUsername?: string;
 }
@@ -131,7 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const registrationPayload = {
         username: data.username,
         email: data.email,
-        password: data.password
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName
       };
 
       const response = await apiClient.register(registrationPayload);
@@ -150,12 +154,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.success('Account created successfully!');
         return true;
       } else {
-        toast.error(response.error || 'Registration failed');
-        return false;
+        const errorMsg = response.error || 'Registration failed';
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
-      return false;
+      const errorMessage = error.message || 'Registration failed';
+      
+      // Don't show toast for user exists errors - let the form handle it
+      if (!errorMessage.toLowerCase().includes('already exists') && 
+          !errorMessage.toLowerCase().includes('already registered')) {
+        toast.error(errorMessage);
+      }
+      
+      throw error; // Re-throw so the form can handle it
     }
   };
 

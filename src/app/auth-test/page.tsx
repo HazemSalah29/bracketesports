@@ -19,7 +19,9 @@ export default function AuthTestPage() {
         body: JSON.stringify({
           username: 'testuser' + Date.now(),
           email: 'test' + Date.now() + '@example.com',
-          password: 'testpass123'
+          password: 'testpass123',
+          firstName: 'Test',
+          lastName: 'User'
         })
       });
 

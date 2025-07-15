@@ -52,7 +52,17 @@ const makeRequest = async <T>(
         requestBody: options.body
       });
       
-      throw new Error(errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      // Enhanced error message for better user feedback
+      let errorMessage = errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+      
+      // Handle specific HTTP status codes
+      if (response.status === 409) {
+        errorMessage = errorData.message || 'User already exists';
+      } else if (response.status === 400 && errorData.message) {
+        errorMessage = errorData.message;
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -72,6 +82,8 @@ export const authApi = {
     username: string;
     email: string;
     password: string;
+    firstName: string;
+    lastName: string;
   }) =>
     makeRequest('/auth/register', {
       method: 'POST',
