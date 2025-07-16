@@ -14,6 +14,7 @@ import {
   TrophyIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
+import CreateTeamModal from '@/components/teams/CreateTeamModal';
 import { Team } from '@/types';
 import { apiClient } from '@/lib/api-client';
 
@@ -291,77 +292,16 @@ export default function TeamsPage() {
             </div>
           )}
 
-          {/* Create Team Modal */}
+          {/* Enhanced Create Team Modal */}
           {showCreateTeamModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-slate-800 p-6 rounded-lg max-w-md w-full mx-4">
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  Create New Team
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm text-slate-300 mb-2">
-                      Team Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter team name"
-                      className="w-full bg-slate-700 border border-slate-600 text-white px-4 py-2 rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-slate-300 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      placeholder="Describe your team..."
-                      rows={3}
-                      className="w-full bg-slate-700 border border-slate-600 text-white px-4 py-2 rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent resize-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-slate-300 mb-2">
-                      Games
-                    </label>
-                    <select className="w-full bg-slate-700 border border-slate-600 text-white px-4 py-2 rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent">
-                      <option value="counter-strike-2">Counter-Strike 2</option>
-                      <option value="valorant">Valorant</option>
-                      <option value="league-of-legends">
-                        League of Legends
-                      </option>
-                      <option value="rocket-league">Rocket League</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="private-team"
-                      className="w-4 h-4 text-gaming-600 bg-slate-700 border-slate-600 rounded focus:ring-gaming-500"
-                    />
-                    <label
-                      htmlFor="private-team"
-                      className="text-sm text-slate-300"
-                    >
-                      Private team (invite only)
-                    </label>
-                  </div>
-                </div>
-                <div className="flex space-x-4 mt-6">
-                  <button
-                    onClick={() => setShowCreateTeamModal(false)}
-                    className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => setShowCreateTeamModal(false)}
-                    className="flex-1 bg-gaming-600 hover:bg-gaming-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Create Team
-                  </button>
-                </div>
-              </div>
-            </div>
+            <CreateTeamModal
+              isOpen={showCreateTeamModal}
+              onClose={() => setShowCreateTeamModal(false)}
+              onTeamCreated={(newTeam) => {
+                setTeams(prev => [newTeam, ...prev]);
+                setShowCreateTeamModal(false);
+              }}
+            />
           )}
         </div>
       </div>

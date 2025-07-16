@@ -12,6 +12,7 @@ import {
   SparklesIcon,
   GiftIcon,
   TrophyIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -150,6 +151,34 @@ export default function CoinsPage() {
             Buy Bracket Coins to participate in exclusive creator tournaments
             and unlock premium experiences
           </p>
+        </div>
+
+        {/* RIOT GAMES API COMPLIANCE NOTICE */}
+        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6 mb-8">
+          <div className="flex items-start space-x-3">
+            <InformationCircleIcon className="w-6 h-6 text-yellow-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-yellow-400 font-medium mb-3">Coin Usage Policy</h3>
+              <div className="text-sm text-slate-300 space-y-2">
+                <div>
+                  <strong className="text-green-400">✓ Allowed Uses:</strong>
+                  <ul className="ml-4 mt-1 space-y-1">
+                    <li>• Nominal tournament entry fees (max $50 USD equivalent)</li>
+                    <li>• Cosmetic profile customizations</li>
+                    <li>• Platform features with no gameplay advantage</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong className="text-red-400">✗ Prohibited Uses:</strong>
+                  <ul className="ml-4 mt-1 space-y-1">
+                    <li>• Gambling, betting, or wagering on tournament outcomes</li>
+                    <li>• Trading coins for profit or speculation</li>
+                    <li>• Any activities that violate Riot Games API policies</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Payment System Warning */}

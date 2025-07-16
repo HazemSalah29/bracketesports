@@ -38,6 +38,11 @@ export default function CreateTournamentPage() {
     game: '',
     pointsReward: '',
     maxParticipants: '32',
+    tournamentFormat: 'elimination', // RIOT COMPLIANCE: Traditional tournament format required
+    entryFee: '0',
+    entryFeeCurrency: 'USD',
+    prizeDistribution: 'fiat', // RIOT COMPLIANCE: Prize distribution in fiat currency
+    allowCoinPayment: false, // RIOT COMPLIANCE: Optional coin payment for fiat equivalent
     startDate: '',
     startTime: '',
     endDate: '',
@@ -84,6 +89,24 @@ export default function CreateTournamentPage() {
     if (!formData.name.trim()) newErrors.name = 'Tournament name is required'
     if (!formData.game) newErrors.game = 'Please select a game'
     if (!formData.pointsReward || parseFloat(formData.pointsReward) < 0) newErrors.pointsReward = 'Valid points reward is required'
+    
+    // RIOT COMPLIANCE: Minimum 20 participants required
+    const maxParticipants = parseInt(formData.maxParticipants)
+    if (maxParticipants < 20) {
+      newErrors.maxParticipants = 'Riot Games API policy requires minimum 20 participants for tournaments'
+    }
+    
+    // RIOT COMPLIANCE: Entry fee validation (nominal amounts only)
+    const entryFee = parseFloat(formData.entryFee)
+    if (entryFee > 50) {
+      newErrors.entryFee = 'Entry fee must be nominal (maximum $50 USD equivalent)'
+    }
+    
+    // RIOT COMPLIANCE: Tournament format validation
+    if (!formData.tournamentFormat) {
+      newErrors.tournamentFormat = 'Tournament format is required'
+    }
+    
     if (!formData.startDate) newErrors.startDate = 'Start date is required'
     if (!formData.startTime) newErrors.startTime = 'Start time is required'
     if (!formData.endDate) newErrors.endDate = 'End date is required'
@@ -181,6 +204,27 @@ export default function CreateTournamentPage() {
           <p className="text-slate-400">
             Set up your own tournament with custom points rewards and achievement badges
           </p>
+        </div>
+
+        {/* RIOT GAMES API COMPLIANCE NOTICE */}
+        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-8">
+          <div className="flex items-start space-x-3">
+            <InformationCircleIcon className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-blue-400 font-medium mb-2">Riot Games API Compliance</h3>
+              <div className="text-sm text-slate-300 space-y-1">
+                <p>• Tournaments must have a minimum of 20 participants</p>
+                <p>• Only traditional tournament formats are allowed (elimination, round-robin, etc.)</p>
+                <p>• Entry fees are optional - tournaments can be completely free</p>
+                <p>• Entry fees must be nominal (maximum $50 USD equivalent) and displayed in fiat currency</p>
+                <p>• Prize distribution must be in fiat currency based on tournament placements</p>
+                <p>• Team captains can join tournaments on behalf of their entire team</p>
+                <p>• No gambling, betting, or wagering features permitted</p>
+                <p>• All features must be equally accessible to all participants</p>
+                <p>• Coins may be used as payment method but entry fees and prizes must show fiat equivalent</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -305,7 +349,8 @@ export default function CreateTournamentPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Max Participants
+                  Max Participants *
+                  <span className="text-xs text-blue-400 ml-2">(Min. 20 required by Riot Games API policy)</span>
                 </label>
                 <div className="relative">
                   <UserGroupIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -315,13 +360,16 @@ export default function CreateTournamentPage() {
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
                   >
-                    <option value="8">8 Players</option>
-                    <option value="16">16 Players</option>
+                    <option value="20">20 Players</option>
+                    <option value="24">24 Players</option>
                     <option value="32">32 Players</option>
+                    <option value="48">48 Players</option>
                     <option value="64">64 Players</option>
+                    <option value="96">96 Players</option>
                     <option value="128">128 Players</option>
                   </select>
                 </div>
+                {errors.maxParticipants && <p className="mt-1 text-sm text-red-400">{errors.maxParticipants}</p>}
               </div>
 
               <div>
@@ -440,16 +488,21 @@ export default function CreateTournamentPage() {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
                 >
-                  <option value="solo">Solo Players</option>
-                  <option value="team">Team-based</option>
-                  <option value="mixed">Mixed (Solo & Team)</option>
+                  <option value="solo">Individual Players (Battle Royale, 1v1, etc.)</option>
+                  <option value="team">Team-based (Team captain joins for entire team)</option>
+                  <option value="mixed">Mixed (Both solo players and teams allowed)</option>
                 </select>
+                <p className="mt-1 text-xs text-slate-400">
+                  {formData.tournamentType === 'solo' && 'Individual players join directly. Perfect for battle royale games.'}
+                  {formData.tournamentType === 'team' && 'Team captains join on behalf of their entire team.'}
+                  {formData.tournamentType === 'mixed' && 'Both individual players and teams can participate.'}
+                </p>
               </div>
               
-              {formData.tournamentType === 'team' && (
+              {(formData.tournamentType === 'team' || formData.tournamentType === 'mixed') && (
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Team Size
+                    Team Size (for team-based participation)
                   </label>
                   <select
                     name="teamSize"
@@ -457,12 +510,122 @@ export default function CreateTournamentPage() {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
                   >
-                    <option value="2">2 Players</option>
-                    <option value="3">3 Players</option>
-                    <option value="4">4 Players</option>
-                    <option value="5">5 Players</option>
-                    <option value="6">6 Players</option>
+                    <option value="2">2 Players per Team</option>
+                    <option value="3">3 Players per Team</option>
+                    <option value="4">4 Players per Team</option>
+                    <option value="5">5 Players per Team (Standard for MOBAs)</option>
+                    <option value="6">6 Players per Team</option>
                   </select>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Team captains will join on behalf of their entire team. All team members automatically participate.
+                  </p>
+                </div>
+              )}
+
+              {/* RIOT COMPLIANCE: Tournament Format Selection */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Tournament Format *
+                  <span className="text-xs text-blue-400 ml-2">(Traditional formats required by Riot Games API policy)</span>
+                </label>
+                <select
+                  name="tournamentFormat"
+                  value={formData.tournamentFormat}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
+                >
+                  <option value="elimination">Single Elimination</option>
+                  <option value="double-elimination">Double Elimination</option>
+                  <option value="round-robin">Round Robin</option>
+                  <option value="swiss">Swiss System</option>
+                </select>
+                {errors.tournamentFormat && <p className="mt-1 text-sm text-red-400">{errors.tournamentFormat}</p>}
+              </div>
+
+              {/* RIOT COMPLIANCE: Entry Fee (Optional - Can be Free) */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Entry Fee (Optional)
+                  <span className="text-xs text-yellow-400 ml-2">(Leave at $0 for free tournaments or maximum $50 USD)</span>
+                </label>
+                <div className="flex space-x-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
+                    <input
+                      type="number"
+                      name="entryFee"
+                      value={formData.entryFee}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="50"
+                      step="0.01"
+                      className="w-full pl-8 pr-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <select
+                    name="entryFeeCurrency"
+                    value={formData.entryFeeCurrency}
+                    onChange={handleInputChange}
+                    className="px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="CAD">CAD</option>
+                  </select>
+                </div>
+                {errors.entryFee && <p className="mt-1 text-sm text-red-400">{errors.entryFee}</p>}
+                <p className="mt-1 text-xs text-slate-400">
+                  {parseFloat(formData.entryFee) === 0 
+                    ? "Free tournament - no entry fee required."
+                    : "Entry fees must be nominal and will be distributed to winners in fiat currency."
+                  }
+                </p>
+              </div>
+
+              {/* RIOT COMPLIANCE: Prize Distribution (Fiat Currency Required) */}
+              {parseFloat(formData.entryFee) > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Prize Distribution *
+                    <span className="text-xs text-blue-400 ml-2">(Required by Riot Games policy for paid tournaments)</span>
+                  </label>
+                  <select
+                    name="prizeDistribution"
+                    value={formData.prizeDistribution}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-gaming-500 focus:border-transparent"
+                  >
+                    <option value="fiat">Fiat Currency Distribution (Compliant)</option>
+                  </select>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Prize pool will be distributed in {formData.entryFeeCurrency} to winning participants based on tournament placements.
+                  </p>
+                </div>
+              )}
+
+              {/* RIOT COMPLIANCE: Coin Payment Option */}
+              {parseFloat(formData.entryFee) > 0 && (
+                <div>
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      name="allowCoinPayment"
+                      checked={formData.allowCoinPayment}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 bg-slate-700 border border-slate-600 rounded text-gaming-500 focus:ring-gaming-500 focus:ring-2"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-slate-300">
+                        Allow Coin Payment (Optional)
+                      </span>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Players can pay entry fee using Bracket Coins (fiat equivalent: ${formData.entryFee} {formData.entryFeeCurrency}).
+                        Prizes will still be distributed in fiat currency.
+                      </p>
+                    </div>
+                  </label>
                 </div>
               )}
             </div>

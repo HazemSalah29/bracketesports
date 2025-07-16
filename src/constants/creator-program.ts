@@ -1,4 +1,6 @@
-// Coin package configuration
+// Coin package configuration - RIOT GAMES API COMPLIANCE
+// Note: Coins can only be used for nominal tournament entry fees and cosmetic purchases
+// NO GAMBLING, BETTING, OR WAGERING allowed per Riot Games API policies
 export const COIN_PACKAGES = [
   {
     id: 'basic',
@@ -6,7 +8,7 @@ export const COIN_PACKAGES = [
     price: 10.00,
     bonus: 0,
     popular: false,
-    description: 'Perfect for trying out creator tournaments'
+    description: 'Perfect for tournament entry fees and cosmetic features'
   },
   {
     id: 'starter',
@@ -14,7 +16,7 @@ export const COIN_PACKAGES = [
     price: 45.00,
     bonus: 50,
     popular: true,
-    description: 'Great value with 10% bonus coins'
+    description: 'Great value with 10% bonus coins for tournaments'
   },
   {
     id: 'premium',
@@ -40,6 +42,24 @@ export const COIN_PACKAGES = [
     popular: false,
     description: 'Ultimate package with 25% bonus coins'
   }
+] as const
+
+// RIOT COMPLIANCE: Allowed coin uses
+export const ALLOWED_COIN_USES = [
+  'tournament-entry-fee', // Must be nominal (max $50 USD equivalent)
+  'cosmetic-purchases',   // No gameplay advantage
+  'platform-features',   // Non-monetary value features
+  'profile-customization'
+] as const
+
+// RIOT COMPLIANCE: Prohibited coin uses
+export const PROHIBITED_COIN_USES = [
+  'betting',
+  'wagering',
+  'gambling',
+  'speculation',
+  'trading-for-profit',
+  'tournament-outcome-betting'
 ] as const
 
 export type CoinPackage = typeof COIN_PACKAGES[number]

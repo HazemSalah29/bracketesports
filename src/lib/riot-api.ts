@@ -1,4 +1,11 @@
-import { ApiResponse } from './api-utils'
+// Riot Games API Client - Frontend Interface
+// SECURITY COMPLIANCE: All Riot API calls must go through backend
+// Frontend never directly accesses Riot APIs to protect API keys
+
+import { apiClient } from './api-client'
+
+// WARNING: DO NOT ADD RIOT API KEYS TO FRONTEND CODE
+// This violates Riot Games API policies and exposes sensitive credentials
 
 // Riot Games API Interfaces
 export interface RiotAccount {
@@ -22,314 +29,135 @@ export interface ValorantPlayerStats {
   damageReceived: number
 }
 
-export interface ValorantMatch {
-  matchId: string
-  gameMode: string
-  mapId: string
-  mapName: string
-  gameLengthMillis: number
-  gameStartMillis: number
-  isCompleted: boolean
-  teams: ValorantTeam[]
-  rounds: ValorantRound[]
-  players: ValorantPlayerStats[]
-}
-
-export interface ValorantTeam {
-  teamId: string
-  won: boolean
-  roundsPlayed: number
-  roundsWon: number
-  numPoints: number
-}
-
-export interface ValorantRound {
-  roundNum: number
-  roundResult: string
-  roundCeremony: string
-  winningTeam: string
-  bombPlanter?: string
-  bombDefuser?: string
-  plantSite?: string
-  defusedInTime?: boolean
-  playerStats: ValorantRoundPlayerStats[]
-}
-
-export interface ValorantRoundPlayerStats {
+export interface LeaguePlayerStats {
   puuid: string
-  kills: number
-  damage: number
-  stayed: boolean
-  economy: {
-    spent: number
-    weapon: string
-    armor: string
-  }
-}
-
-export interface LeagueAccount {
-  id: string
-  accountId: string
-  puuid: string
-  name: string
+  summonerId: string
+  summonerName: string
   profileIconId: number
-  revisionDate: number
   summonerLevel: number
+  kills: number
+  deaths: number
+  assists: number
+  win: boolean
+  championId: number
+  championName: string
+  role: string
+  lane: string
 }
 
-export interface CustomGameLobby {
-  lobbyId: string
-  gameMode: 'VALORANT' | 'LEAGUE_OF_LEGENDS'
-  password: string
-  tournamentId: string
-  participants: string[]
-  status: 'CREATED' | 'IN_PROGRESS' | 'COMPLETED'
-  createdAt: Date
-  mapId?: string
-  gameSettings?: Record<string, any>
-}
-
-class RiotGamesAPI {
-  private apiKey: string
-  private baseUrls: {
-    americas: string
-    valorant: string
-    lol: string
-  }
-  private requestCounts: Map<string, { count: number; resetTime: number }> = new Map()
-
-  constructor() {
-    this.apiKey = process.env.RIOT_API_KEY || ''
-    this.baseUrls = {
-      americas: process.env.RIOT_API_BASE_URL || 'https://americas.api.riotgames.com',
-      valorant: process.env.RIOT_VALORANT_API_BASE_URL || 'https://na.api.riotgames.com',
-      lol: process.env.RIOT_LOL_API_BASE_URL || 'https://na1.api.riotgames.com'
-    }
-
-    console.log('🔧 Riot API initialized with:', {
-      hasApiKey: !!this.apiKey,
-      apiKeyLength: this.apiKey.length,
-      baseUrls: this.baseUrls
-    })
-
-    if (!this.apiKey) {
-      throw new Error('RIOT_API_KEY environment variable is required')
+// SECURITY COMPLIANT: Frontend proxy to backend Riot API
+// NO API KEYS IN FRONTEND - All Riot API calls go through backend
+class RiotAPIProxy {
+  /**
+   * Verify a Riot account through secure backend API
+   * COMPLIANT: No direct Riot API access from frontend
+   */
+  async verifyAccount(data: { username: string; tagline: string; game: string }) {
+    try {
+      return await apiClient.riot.verifyAccount(data);
+    } catch (error) {
+      console.error('Account verification failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Account verification failed'
+      };
     }
   }
 
-  private async rateLimitCheck(region: string): Promise<void> {
-    const now = Date.now()
-    const key = region
-    
-    if (!this.requestCounts.has(key)) {
-      this.requestCounts.set(key, { count: 0, resetTime: now + 1000 })
-    }
-    
-    const rateLimitData = this.requestCounts.get(key)!
-    
-    if (now > rateLimitData.resetTime) {
-      rateLimitData.count = 0
-      rateLimitData.resetTime = now + 1000
-    }
-    
-    if (rateLimitData.count >= 15) { // Stay under the 20/second limit
-      const waitTime = rateLimitData.resetTime - now
-      if (waitTime > 0) {
-        console.log(`🔧 Rate limit hit for ${region}, waiting ${waitTime}ms`)
-        await new Promise(resolve => setTimeout(resolve, waitTime))
-        rateLimitData.count = 0
-        rateLimitData.resetTime = Date.now() + 1000
-      }
-    }
-    
-    rateLimitData.count++
-  }
-
-  private async makeRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
-    console.log('🔧 Riot API Request:', url)
-    console.log('🔧 API Key (first 8 chars):', this.apiKey.substring(0, 8) + '...')
-    
-    // Extract region for rate limiting
-    const region = url.includes('americas') ? 'americas' : 
-                   url.includes('na.api') ? 'na' : 
-                   url.includes('na1.api') ? 'na1' : 'default'
-    
-    await this.rateLimitCheck(region)
-    
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'X-Riot-Token': this.apiKey,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    })
-
-    console.log('🔧 Riot API Response status:', response.status, response.statusText)
-    console.log('🔧 Response headers:', Object.fromEntries(response.headers.entries()))
-
-    if (!response.ok) {
-      const error = await response.text()
-      console.log('🔧 Riot API Error response:', error)
+  /**
+   * Get player profile through backend API
+   * SECURE: Backend handles all Riot API authentication
+   */
+  async getPlayerProfile(puuid: string) {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`https://bracketesports-backend.onrender.com/api/riot/player/${puuid}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       
-      // Handle specific error cases
-      if (response.status === 403) {
-        throw new Error(`Riot API access forbidden. Please check your API key. Status: ${response.status}`)
-      } else if (response.status === 404) {
-        throw new Error(`Riot account not found. Please check the Riot ID and tag. Status: ${response.status}`)
-      } else if (response.status === 429) {
-        throw new Error(`Rate limit exceeded. Please wait a moment and try again. Status: ${response.status}`)
-      } else if (response.status >= 500) {
-        throw new Error(`Riot servers are currently unavailable. Please try again later. Status: ${response.status}`)
-      } else {
-        throw new Error(`Riot API Error: ${response.status} - ${error}`)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-    }
-
-    const data = await response.json()
-    console.log('🔧 Riot API Success response:', data)
-    return data
-  }
-
-  // Account Linking & Verification
-  async getAccountByRiotId(gameName: string, tagLine: string): Promise<RiotAccount> {
-    const url = `${this.baseUrls.americas}/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`
-    return this.makeRequest<RiotAccount>(url)
-  }
-
-  async getAccountByPuuid(puuid: string): Promise<RiotAccount> {
-    const url = `${this.baseUrls.americas}/riot/account/v1/accounts/by-puuid/${puuid}`
-    return this.makeRequest<RiotAccount>(url)
-  }
-
-  // Valorant Specific APIs
-  async getValorantAccountByPuuid(puuid: string): Promise<any> {
-    const url = `${this.baseUrls.valorant}/val/content/v1/contents`
-    return this.makeRequest(url)
-  }
-
-  async getValorantMatchHistory(puuid: string): Promise<{ history: { matchId: string; gameStartTimeMillis: number }[] }> {
-    const url = `${this.baseUrls.valorant}/val/match/v1/matchlists/by-puuid/${puuid}`
-    return this.makeRequest(url)
-  }
-
-  async getValorantMatch(matchId: string): Promise<ValorantMatch> {
-    const url = `${this.baseUrls.valorant}/val/match/v1/matches/${matchId}`
-    return this.makeRequest(url)
-  }
-
-  async getValorantRankedStats(puuid: string): Promise<any> {
-    const url = `${this.baseUrls.valorant}/val/ranked/v1/leaderboards/by-act/97b6e739-44cc-ffa7-49ad-398ba502ceb0?size=1&startIndex=0&puuid=${puuid}`
-    return this.makeRequest(url)
-  }
-
-  // League of Legends Specific APIs
-  async getLeagueAccountByName(summonerName: string): Promise<LeagueAccount> {
-    const url = `${this.baseUrls.lol}/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`
-    return this.makeRequest<LeagueAccount>(url)
-  }
-
-  async getLeagueAccountByPuuid(puuid: string): Promise<LeagueAccount> {
-    const url = `${this.baseUrls.lol}/lol/summoner/v4/summoners/by-puuid/${puuid}`
-    return this.makeRequest<LeagueAccount>(url)
-  }
-
-  async getLeagueMatchHistory(puuid: string): Promise<string[]> {
-    const url = `${this.baseUrls.americas}/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=20`
-    return this.makeRequest<string[]>(url)
-  }
-
-  async getLeagueMatch(matchId: string): Promise<any> {
-    const url = `${this.baseUrls.americas}/lol/match/v5/matches/${matchId}`
-    return this.makeRequest(url)
-  }
-
-  // Custom Game Lobby Creation (Note: These APIs are limited and may require special access)
-  async createValorantCustomGame(settings: {
-    gameMode: string
-    mapId: string
-    teamSize: number
-    allowCheats?: boolean
-    tournamentCode?: string
-  }): Promise<{ lobbyId: string; password: string }> {
-    // Note: This is a placeholder implementation
-    // Real custom game creation requires tournament API access from Riot
-    const password = this.generateCustomGamePassword()
-    const lobbyId = `VCG_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    // In a real implementation, this would make a request to Riot's Tournament API
-    // For now, we'll simulate the lobby creation
-    return {
-      lobbyId,
-      password
-    }
-  }
-
-  async createLeagueCustomGame(settings: {
-    gameMode: string
-    mapId: string
-    teamSize: number
-    pickType: string
-    tournamentCode?: string
-  }): Promise<{ lobbyId: string; password: string }> {
-    // Note: This is a placeholder implementation
-    // Real custom game creation requires tournament API access from Riot
-    const password = this.generateCustomGamePassword()
-    const lobbyId = `LCG_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    return {
-      lobbyId,
-      password
-    }
-  }
-
-  private generateCustomGamePassword(): string {
-    const length = parseInt(process.env.VALORANT_CUSTOM_GAME_PASSWORD_LENGTH || '8')
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // Avoid confusing characters
-    let password = ''
-    for (let i = 0; i < length; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return password
-  }
-
-  // Tournament Integration Methods
-  async verifyPlayerOwnership(puuid: string, verificationCode: string): Promise<boolean> {
-    // This would require the player to set their Riot ID to a verification code temporarily
-    // Then we check if their current Riot ID matches the code
-    try {
-      const account = await this.getAccountByPuuid(puuid)
-      return account.gameName.includes(verificationCode) || account.tagLine.includes(verificationCode)
+      
+      return await response.json();
     } catch (error) {
-      return false
+      console.error('Failed to get player profile:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get player profile'
+      };
     }
   }
 
-  async getPlayerCurrentRank(puuid: string, game: 'VALORANT' | 'LEAGUE_OF_LEGENDS'): Promise<{ tier: string; division: number; lp: number }> {
+  /**
+   * Get player match history through backend API
+   * SECURE: All Riot API interactions go through backend
+   */
+  async getPlayerMatches(puuid: string, game: 'valorant' | 'lol', count: number = 5) {
     try {
-      if (game === 'VALORANT') {
-        const stats = await this.getValorantRankedStats(puuid)
-        // Parse Valorant rank data
-        return {
-          tier: 'Iron', // Placeholder - parse from actual response
-          division: 1,
-          lp: 0
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`https://bracketesports-backend.onrender.com/api/riot/matches/${puuid}?game=${game}&count=${count}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      } else if (game === 'LEAGUE_OF_LEGENDS') {
-        // League rank fetching would go here
-        return {
-          tier: 'Iron',
-          division: 4,
-          lp: 0
-        }
-      } else {
-        throw new Error(`Unsupported game: ${game}`)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
+      
+      return await response.json();
     } catch (error) {
-      throw new Error(`Failed to fetch rank for ${game}: ${error}`)
+      console.error('Failed to get player matches:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get player matches'
+      };
+    }
+  }
+
+  /**
+   * Get player stats for tournaments through backend API
+   * POLICY COMPLIANT: No direct Riot API access, no MMR calculations
+   */
+  async getPlayerStats(puuid: string, game: 'valorant' | 'lol', matchCount: number = 10) {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`https://bracketesports-backend.onrender.com/api/riot/stats/${puuid}?game=${game}&count=${matchCount}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to get player stats:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get player stats'
+      };
     }
   }
 }
 
-export const riotAPI = new RiotGamesAPI()
-export default riotAPI
+// Export singleton instance
+export const riotAPI = new RiotAPIProxy();
+
+// Default export for backward compatibility
+export default riotAPI;
+
+// POLICY COMPLIANCE NOTES:
+// ✅ No API keys in frontend code
+// ✅ All Riot API calls go through backend
+// ✅ No MMR/ELO calculations
+// ✅ Focus on positive player experience
+// ✅ Tournament stats only, no ranking alternatives

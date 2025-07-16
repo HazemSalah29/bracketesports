@@ -35,13 +35,14 @@ interface TournamentFormData {
   description: string;
   game: string;
   entryFeeCoin: number;
+  entryFeeUSD: number; // RIOT COMPLIANCE: Must display fiat equivalent
   maxParticipants: number;
+  tournamentFormat: string; // RIOT COMPLIANCE: Traditional format required
   startDate: string;
   startTime: string;
-  prizeType: 'EXPERIENCE' | 'COINS' | 'CASH' | 'MERCHANDISE' | 'HYBRID';
+  prizeType: 'FIAT_ONLY' | 'EXPERIENCE'; // RIOT COMPLIANCE: Limited prize types
   prizeDescription: string;
-  cashPrizePool?: number;
-  coinPrizePool?: number;
+  fiatPrizePool: number; // RIOT COMPLIANCE: Prize pool in fiat currency
   experiencePrize?: string;
 }
 
@@ -53,11 +54,14 @@ export function CreateTournamentForm({ user }: CreateTournamentFormProps) {
     description: '',
     game: 'VALORANT',
     entryFeeCoin: TOURNAMENT_ENTRY_EXAMPLES[user.creator.tier][1], // Default to middle option
-    maxParticipants: 32,
+    entryFeeUSD: 5.0, // RIOT COMPLIANCE: Default nominal fiat equivalent
+    maxParticipants: 32, // RIOT COMPLIANCE: Will be validated to minimum 20
+    tournamentFormat: 'elimination', // RIOT COMPLIANCE: Traditional format
     startDate: '',
     startTime: '',
-    prizeType: 'EXPERIENCE',
+    prizeType: 'EXPERIENCE', // RIOT COMPLIANCE: Non-monetary experience prizes allowed
     prizeDescription: '',
+    fiatPrizePool: 0, // RIOT COMPLIANCE: Fiat prize pool required if any monetary prizes
     experiencePrize: '1-on-1 coaching session with me + Discord VIP role',
   });
 
@@ -102,6 +106,36 @@ export function CreateTournamentForm({ user }: CreateTournamentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* RIOT GAMES API COMPLIANCE NOTICE */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="flex items-start space-x-3">
+          <InformationCircleIcon className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h3 className="text-blue-800 font-medium mb-3">Creator Tournament Compliance</h3>
+            <div className="text-sm text-blue-700 space-y-2">
+              <div>
+                <strong className="text-blue-800">✓ Compliant Approach:</strong>
+                <ul className="ml-4 mt-1 space-y-1">
+                  <li>• Players pay with coins, but entry fee displayed in fiat currency (USD)</li>
+                  <li>• Experience prizes (coaching, content features) are allowed</li>
+                  <li>• Fiat currency prizes distributed based on tournament placements</li>
+                  <li>• Minimum 20 participants required</li>
+                  <li>• Traditional tournament formats only</li>
+                </ul>
+              </div>
+              <div>
+                <strong className="text-red-600">✗ Prohibited:</strong>
+                <ul className="ml-4 mt-1 space-y-1">
+                  <li>• No coin-only prizes (must have fiat equivalent or be experience-based)</li>
+                  <li>• No gambling, betting, or wagering features</li>
+                  <li>• No ladder systems using Tournaments API</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -207,6 +241,7 @@ export function CreateTournamentForm({ user }: CreateTournamentFormProps) {
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Max Participants
+                <span className="text-xs text-red-600 ml-2">(Minimum 20 required by Riot Games API policy)</span>
               </label>
               <select
                 id="maxParticipants"
@@ -219,8 +254,8 @@ export function CreateTournamentForm({ user }: CreateTournamentFormProps) {
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value={8}>8 players</option>
-                <option value={16}>16 players</option>
+                <option value={20}>20 players (Minimum)</option>
+                <option value={24}>24 players</option>
                 <option value={32}>32 players</option>
                 {tierInfo.maxTournamentSize >= 64 && (
                   <option value={64}>64 players</option>
@@ -233,7 +268,37 @@ export function CreateTournamentForm({ user }: CreateTournamentFormProps) {
                 )}
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                Max {tierInfo.maxTournamentSize} for your tier
+                Max {tierInfo.maxTournamentSize} for your tier (minimum 20 for Riot API compliance)
+              </p>
+            </div>
+
+            {/* RIOT COMPLIANCE: Tournament Format */}
+            <div>
+              <label
+                htmlFor="tournamentFormat"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Tournament Format
+                <span className="text-xs text-blue-600 ml-2">(Traditional formats required by Riot Games API policy)</span>
+              </label>
+              <select
+                id="tournamentFormat"
+                value={formData.tournamentFormat}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    tournamentFormat: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="elimination">Single Elimination</option>
+                <option value="double-elimination">Double Elimination</option>
+                <option value="round-robin">Round Robin</option>
+                <option value="swiss">Swiss System</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Only traditional tournament formats are allowed per Riot Games API policy
               </p>
             </div>
 
@@ -310,22 +375,20 @@ export function CreateTournamentForm({ user }: CreateTournamentFormProps) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Prize Type
+              <span className="text-xs text-blue-600 ml-2">(Riot Games API compliant options only)</span>
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 {
                   value: 'EXPERIENCE',
-                  label: 'Experience',
-                  desc: 'Coaching, content features',
+                  label: 'Experience Prize',
+                  desc: 'Coaching, content features, community perks',
                 },
-                { value: 'COINS', label: 'Coins', desc: 'Platform currency' },
-                { value: 'CASH', label: 'Cash', desc: 'Direct payment' },
-                {
-                  value: 'MERCHANDISE',
-                  label: 'Merch',
-                  desc: 'Physical items',
+                { 
+                  value: 'FIAT_ONLY', 
+                  label: 'Fiat Currency', 
+                  desc: 'Cash prizes distributed in USD/EUR/etc.' 
                 },
-                { value: 'HYBRID', label: 'Mixed', desc: 'Combination' },
               ].map((type) => (
                 <label key={type.value} className="relative">
                   <input
@@ -393,64 +456,86 @@ export function CreateTournamentForm({ user }: CreateTournamentFormProps) {
             </div>
           )}
 
-          {(formData.prizeType === 'COINS' ||
-            formData.prizeType === 'HYBRID') && (
+          {/* RIOT COMPLIANCE: Fiat Prize Pool */}
+          {formData.prizeType === 'FIAT_ONLY' && (
             <div>
               <label
-                htmlFor="coinPrizePool"
+                htmlFor="fiatPrizePool"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Coin Prize Pool
+                Fiat Currency Prize Pool ($)
+                <span className="text-xs text-blue-600 ml-2">(Riot Games API compliant)</span>
               </label>
               <input
                 type="number"
-                id="coinPrizePool"
+                id="fiatPrizePool"
                 min="0"
-                value={formData.coinPrizePool || ''}
+                max="50"
+                step="0.01"
+                value={formData.fiatPrizePool || ''}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    coinPrizePool: parseInt(e.target.value) || undefined,
+                    fiatPrizePool: parseFloat(e.target.value) || 0,
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="500"
+                placeholder="25.00"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Coins you&apos;ll award to winners (comes from your earnings)
+                Prize pool will be distributed to winners in USD. Must be nominal amount (max $50 per Riot policy).
               </p>
             </div>
           )}
 
-          {(formData.prizeType === 'CASH' ||
-            formData.prizeType === 'HYBRID') && (
-            <div>
-              <label
-                htmlFor="cashPrizePool"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Cash Prize Pool ($)
-              </label>
-              <input
-                type="number"
-                id="cashPrizePool"
-                min="0"
-                step="0.01"
-                value={formData.cashPrizePool || ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    cashPrizePool: parseFloat(e.target.value) || undefined,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="100.00"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Cash you&apos;ll pay winners (your responsibility)
-              </p>
+          {/* Entry Fee and Fiat Equivalent Display */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-blue-800 mb-2">
+              Entry Fee Configuration (Riot Games API Compliant)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-blue-700 mb-1">
+                  Coin Entry Fee
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.entryFeeCoin}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      entryFeeCoin: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-2 py-1 text-sm border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-blue-700 mb-1">
+                  Fiat Equivalent (USD) *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  step="0.01"
+                  value={formData.entryFeeUSD}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      entryFeeUSD: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full px-2 py-1 text-sm border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             </div>
-          )}
+            <p className="text-xs text-blue-600 mt-2">
+              Entry fee must be displayed in fiat currency (USD) for Riot Games API compliance. 
+              Players pay {formData.entryFeeCoin} coins (${formData.entryFeeUSD} USD equivalent).
+            </p>
+          </div>
 
           <div>
             <label
